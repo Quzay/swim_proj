@@ -1,5 +1,6 @@
 import datetime
 from .base import Base
+from .achievement import Achievement
 from sqlalchemy.orm import mapped_column,Mapped, relationship
 from sqlalchemy import String,Date
 from typing import Optional,List

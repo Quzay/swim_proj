@@ -1,5 +1,6 @@
 import datetime
 from .base import Base
+from .user import User
 from sqlalchemy.orm import mapped_column,Mapped, relationship
 from sqlalchemy import String,ForeignKey,DateTime,Float
 

@@ -1,5 +1,9 @@
 import datetime
 from .base import Base
+from .rating import Rating
+from .equipment import Equipment
+from .user import User
+from .competition import Competition
 from sqlalchemy.orm import mapped_column,Mapped, relationship
 from sqlalchemy import String,ForeignKey,Time,Float
 from typing import Optional,List
