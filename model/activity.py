@@ -8,7 +8,7 @@ class Activity(Base):
     __tablename__ = "activity"
 
     id:Mapped[int] = mapped_column(autoincrement=True,primary_key=True)
-    day:Mapped[datetime.datetime] = mapped_column(DateTime(timezone=True), default=lambda:datetime.now(datetime.timezone.utc))
+    day:Mapped[datetime.datetime] = mapped_column(DateTime(timezone=True), default=lambda:datetime.datetime.now(datetime.timezone.utc))
     stroke:Mapped[str] = mapped_column(String(15))
     distance_meters: Mapped[int] 
 
