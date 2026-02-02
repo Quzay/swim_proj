@@ -1,6 +1,6 @@
 from datetime import datetime
 from .base import Base
-from sqlalchemy.orm import mapped_column,Mapped
+from sqlalchemy.orm import mapped_column,Mapped, relationship
 from sqlalchemy import String,ForeignKey,DateTime,Float
 
 class Activity(Base):
@@ -12,3 +12,5 @@ class Activity(Base):
     distance: Mapped[float] = mapped_column(Float)
 
     user_id:Mapped[int] = mapped_column(ForeignKey("user.id"))
+
+    user:Mapped["User"] = relationship(back_populates="activity")

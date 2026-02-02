@@ -18,3 +18,5 @@ class Achievement(Base):
     competition_id:Mapped[int] = mapped_column(ForeignKey("competition.id"))
     user_id:Mapped[int] = mapped_column(ForeignKey("user.id"))
     
+    user:Mapped["User"] = relationship(back_populates="achievements")
+    competition:Mapped["Competition"] = relationship(back_populates="achievements")

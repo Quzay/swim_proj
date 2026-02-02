@@ -1,8 +1,8 @@
 from datetime import datetime
 from .base import Base
-from sqlalchemy.orm import mapped_column,Mapped
-from sqlalchemy import String,ForeignKey, DateTime
-from typing import Optional
+from sqlalchemy.orm import mapped_column,Mapped, relationship
+from sqlalchemy import ForeignKey, DateTime
+
 
 class Rating(Base):
     __tablename__ = "rating"
@@ -13,3 +13,6 @@ class Rating(Base):
 
     user_id:Mapped[int] = mapped_column(ForeignKey("user.id"))
     achievement_id:Mapped[int] = mapped_column(ForeignKey("achievement.id"))
+
+    user:Mapped["User"] = relationship(back_populates="rating")
+    achievement:Mapped["Achievement"] = relationship(back_populates="rating")

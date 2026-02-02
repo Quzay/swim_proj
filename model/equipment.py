@@ -1,5 +1,5 @@
 from .base import Base
-from sqlalchemy.orm import mapped_column,Mapped
+from sqlalchemy.orm import mapped_column,Mapped,relationship
 from sqlalchemy import String,ForeignKey
 from typing import Optional
 
@@ -12,3 +12,5 @@ class Equipment(Base):
     brand:Mapped[Optional[str]] = mapped_column(String(25))
 
     achievement_id:Mapped[int] = mapped_column(ForeignKey("achievement.id"))
+
+    achievement:Mapped["Achievement"] = relationship(back_populates="equipments")
