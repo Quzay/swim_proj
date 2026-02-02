@@ -14,5 +14,5 @@ class Rating(Base):
     user_id:Mapped[int] = mapped_column(ForeignKey("user.id"))
     achievement_id:Mapped[int] = mapped_column(ForeignKey("achievement.id"))
 
-    user:Mapped["User"] = relationship(back_populates="rating")
-    achievement:Mapped["Achievement"] = relationship(back_populates="rating")
+    user:Mapped["User"] = relationship(back_populates="ratings")
+    achievement:Mapped["Achievement"] = relationship(back_populates="ratings")

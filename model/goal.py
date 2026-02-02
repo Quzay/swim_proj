@@ -1,8 +1,8 @@
 import datetime
 from .base import Base
-from sqlalchemy.orm import mapped_column,Mapped
-from sqlalchemy import String,ForeignKey,DateTime,Float
-from typing import Optional,List
+from sqlalchemy.orm import mapped_column,Mapped,relationship
+from sqlalchemy import ForeignKey,DateTime,Float
+
 
 class Goal(Base):
     __tablename__ = "goal"
@@ -13,4 +13,5 @@ class Goal(Base):
 
     user_id:Mapped[int] = mapped_column(ForeignKey("user.id"))
 
+    user:Mapped["User"] = relationship(back_populates="goals")
     #remaining:
