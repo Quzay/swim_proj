@@ -1,12 +1,10 @@
 import datetime
 from .base import Base
-from .rating import Rating
-from .equipment import Equipment
-from .user import User
-from .competition import Competition
 from sqlalchemy.orm import mapped_column,Mapped, relationship
-from sqlalchemy import String,ForeignKey,Time,Float
+from sqlalchemy import String,ForeignKey,Time
 from typing import Optional,List
+
+
 
 class Achievement(Base):
     __tablename__ = "achievement"
@@ -14,7 +12,7 @@ class Achievement(Base):
     id:Mapped[int] = mapped_column(autoincrement=True,primary_key=True)
     stroke:Mapped[str] = mapped_column(String(15))
     time:Mapped[datetime.time] = mapped_column(Time(3))
-    distance: Mapped[float] = mapped_column(Float)
+    distance_meters: Mapped[int] 
 
     ratings:Mapped[List["Rating"]] = relationship(back_populates="achievement")
     equipments:Mapped[Optional[List["Equipment"]]] = relationship(back_populates="achievement")

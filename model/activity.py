@@ -1,8 +1,8 @@
 import datetime
-from .base import Base
-from .user import User
 from sqlalchemy.orm import mapped_column,Mapped, relationship
-from sqlalchemy import String,ForeignKey,DateTime,Float
+from sqlalchemy import String,ForeignKey,DateTime
+from .base import Base
+
 
 class Activity(Base):
     __tablename__ = "activity"
@@ -10,7 +10,7 @@ class Activity(Base):
     id:Mapped[int] = mapped_column(autoincrement=True,primary_key=True)
     day:Mapped[datetime.datetime] = mapped_column(DateTime(timezone=True), default=lambda:datetime.now(datetime.timezone.utc))
     stroke:Mapped[str] = mapped_column(String(15))
-    distance: Mapped[float] = mapped_column(Float)
+    distance_meters: Mapped[int] 
 
     user_id:Mapped[int] = mapped_column(ForeignKey("user.id"))
 

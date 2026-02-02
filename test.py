@@ -4,10 +4,10 @@ from sqlalchemy.orm import Session
 
 init_db()
 
-#Activ = Activity(stroke="freestyle",distance = 14.5)
+
 
 with Session(engine) as session:
-    Dranisama = User(username="Dranislav",password="nohome",email="dranisma@gmail.com")
+    Dranisama = User(username="Dranislav",password="nohome",email="dranisma@gmail.com",age = 17)
     session.add(Dranisama)
     session.commit()
 

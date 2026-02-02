@@ -1,12 +1,9 @@
 import datetime
+from typing import Optional,List
 from .base import Base
-from .goal import Goal
-from .achievement import Achievement
-from .rating import Rating
-from .activity import Activity
 from sqlalchemy.orm import mapped_column,Mapped, relationship
 from sqlalchemy import String,DateTime
-from typing import Optional,List
+
 from sqlalchemy.sql import func
 
 class User(Base):

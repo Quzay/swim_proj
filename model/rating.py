@@ -1,7 +1,5 @@
 from datetime import datetime
 from .base import Base
-from .user import User
-from .achievement import Achievement
 from sqlalchemy.orm import mapped_column,Mapped, relationship
 from sqlalchemy import ForeignKey, DateTime
 

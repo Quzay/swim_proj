@@ -1,8 +1,8 @@
 from .base import Base
-from .achievement import Achievement
 from sqlalchemy.orm import mapped_column,Mapped,relationship
 from sqlalchemy import String,ForeignKey
 from typing import Optional
+
 
 class Equipment(Base):
     __tablename__ = "equipment"
