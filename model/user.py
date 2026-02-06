@@ -11,7 +11,7 @@ class User(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     username: Mapped[str] = mapped_column(String(30))
-    email: Mapped[str] = mapped_column(String(40))
+    email: Mapped[str] = mapped_column(String(40) , unique=True)
     created_at:Mapped[datetime.datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     age: Mapped[Optional[int]]
     password: Mapped[str] = mapped_column(String(30))   #?
