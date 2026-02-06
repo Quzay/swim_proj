@@ -1,10 +1,10 @@
 import datetime
 from sqlalchemy.orm import mapped_column,Mapped, relationship
 from sqlalchemy import String,ForeignKey,DateTime
-from .base import Base
+from .base import db
 
 
-class Activity(Base):
+class Activity(db.Model):
     __tablename__ = "activity"
 
     id:Mapped[int] = mapped_column(autoincrement=True,primary_key=True)

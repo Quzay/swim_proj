@@ -1,12 +1,12 @@
 import datetime
 from typing import Optional,List
-from .base import Base
+from .base import db
 from sqlalchemy.orm import mapped_column,Mapped, relationship
 from sqlalchemy import String,DateTime
 
 from sqlalchemy.sql import func
 
-class User(Base):
+class User(db.Model):
     __tablename__ = "user"
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)

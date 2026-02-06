@@ -1,10 +1,10 @@
 import datetime
-from .base import Base
+from .base import db
 from sqlalchemy.orm import mapped_column,Mapped, relationship
 from sqlalchemy import String,Date
 from typing import Optional,List
 
-class Competition(Base):
+class Competition(db.Model):
     __tablename__ = "competition"
 
     id:Mapped[int] = mapped_column(autoincrement=True,primary_key=True)

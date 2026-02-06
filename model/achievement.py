@@ -1,12 +1,12 @@
 import datetime
-from .base import Base
+from .base import db
 from sqlalchemy.orm import mapped_column,Mapped, relationship
 from sqlalchemy import String,ForeignKey,Time
 from typing import Optional,List
 
 
 
-class Achievement(Base):
+class Achievement(db.Model):
     __tablename__ = "achievement"
 
     id:Mapped[int] = mapped_column(autoincrement=True,primary_key=True)
