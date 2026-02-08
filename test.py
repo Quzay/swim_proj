@@ -1,9 +1,9 @@
 import datetime
-from model import Achievement,Activity,Equipment,Goal,Rating,User,Competition,db,app
-from model.database import init_db
+from app.model import Achievement,Activity,Equipment,Goal,Rating,User,Competition,db
+from app import create_app
 
 
-init_db()
+app = create_app()
 
 
 

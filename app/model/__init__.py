@@ -6,4 +6,4 @@ from .activity import Activity
 from .rating import Rating
 from .competition import Competition
 from .equipment import Equipment
-from .database import app
+
