@@ -23,9 +23,12 @@ def add_user():
         db.session.commit()
         return jsonify({"message": "User added successfully"}), 201
 
-@user_bp.route('/delete', methods=['DELETE'])
-def delete_user():
+@user_bp.route('/delete/<int:user_id>', methods=['DELETE'])
+def delete_user(user_id):
     if request.method == "DELETE":
+        user = User.query.get(user_id)
+        if not user:
+            return jsonify({"message": "User not found"}), 404
         data = request.get_json()
         email_val = data.get("email")
         password_val = data.get("password")
