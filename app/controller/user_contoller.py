@@ -15,6 +15,8 @@ def add_user():
             age = data.get("age")
         )
         password_from_data = data.get("password")
+        if len(password_from_data) < 6:
+            return jsonify({"message": "Password must be at least 6 characters long"}), 400
         if password_from_data:
             new_user.set_password(password_from_data)
         else:
@@ -32,15 +34,13 @@ def delete_user(user_id):
         data = request.get_json()
         email_val = data.get("email")
         password_val = data.get("password")
-        user = db.session.execute(db.select(User).filter_by(email=email_val)).scalar_one_or_none()
-        
-        if user and user.check_password(password_val):
+        if user and user.check_password(password_val) and user.email == email_val:
             db.session.delete(user)
             db.session.commit()
             return jsonify({"message": "User deleted successfully"}), 200
         return jsonify({"message": "Invalid email or password"}), 401
 
-@user_bp.route('/update/<int:user_id>', methods=['PUT'])
+@user_bp.route('/update/<int:user_id>', methods=['PATCH'])
 def update_user(user_id):
     user = User.query.get(user_id)
     if not user:
@@ -70,3 +70,23 @@ def get_user(user_id):
         "created_at": user.created_at.isoformat()
     }
     return jsonify(user_data), 200
+
+@user_bp.route('/change/<int:user_id>', methods=['PUT'])
+def change_user(user_id):
+    user = User.query.get(user_id)
+    if not user:
+        return jsonify({"message": "User not found"}), 404
+    data = request.get_json()
+    required_fields = ["username", "email", "age", "password"]
+    missing_fields = [field for field in required_fields if field not in data]
+    if missing_fields:
+        return jsonify({"error": "Missing data",
+            "message": f"Fields required: {', '.join(missing_fields)}"}), 400
+    if len(data["password"]) < 6:
+        return jsonify({"message": "Password must be at least 6 characters long"}), 400
+    else:user.set_password(data["password"])
+    user.username = data["username"]
+    user.email = data["email"]
+    user.age = data["age"]
+    db.session.commit()
+    return jsonify({"message": "User information changed successfully"}), 200
