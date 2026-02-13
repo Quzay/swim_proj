@@ -5,7 +5,7 @@ from app.model import User
 
 user_bp = Blueprint('user', __name__)
 
-@user_bp.route("/add" , methods = ["POST"])
+@user_bp.route("/" , methods = ["POST"])
 def add_user():
     if request.method == "POST":
         data = request.get_json()
@@ -25,7 +25,7 @@ def add_user():
         db.session.commit()
         return jsonify({"message": "User added successfully"}), 201
 
-@user_bp.route('/delete/<int:user_id>', methods=['DELETE'])
+@user_bp.route('/<int:user_id>', methods=['DELETE'])
 def delete_user(user_id):
     if request.method == "DELETE":
         user = User.query.get(user_id)
@@ -40,24 +40,24 @@ def delete_user(user_id):
             return jsonify({"message": "User deleted successfully"}), 200
         return jsonify({"message": "Invalid email or password"}), 401
 
-@user_bp.route('/update/<int:user_id>', methods=['PATCH'])
+@user_bp.route('/<int:user_id>', methods=['PATCH'])
 def update_user(user_id):
     user = User.query.get(user_id)
     if not user:
         return jsonify({"message": "User not found"}), 404
     data = request.get_json()
     if "username" in data:
-        user.username = data["username"]
+        user.username = data.get("username")
     if "email" in data:
-        user.email = data["email"]
+        user.email = data.get("email")
     if "age" in data:
-        user.age = data["age"]
+        user.age = data.get("age")
     if "password" in data:
-        user.set_password(data["password"])
+        user.set_password(data.get("password")) 
     db.session.commit()
     return jsonify({"message": "User updated successfully"}), 200
 
-@user_bp.route('/get/<int:user_id>' , methods=['GET'])
+@user_bp.route('/<int:user_id>' , methods=['GET'])
 def get_user(user_id):
     user = User.query.get(user_id)
     if not user:
@@ -71,7 +71,7 @@ def get_user(user_id):
     }
     return jsonify(user_data), 200
 
-@user_bp.route('/change/<int:user_id>', methods=['PUT'])
+@user_bp.route('/<int:user_id>', methods=['PUT'])
 def change_user(user_id):
     user = User.query.get(user_id)
     if not user:
@@ -84,9 +84,9 @@ def change_user(user_id):
             "message": f"Fields required: {', '.join(missing_fields)}"}), 400
     if len(data["password"]) < 6:
         return jsonify({"message": "Password must be at least 6 characters long"}), 400
-    else:user.set_password(data["password"])
-    user.username = data["username"]
-    user.email = data["email"]
-    user.age = data["age"]
+    else:user.set_password(data.get("password"))
+    user.username = data.get("username")
+    user.email = data.get("email")
+    user.age = data.get("age")
     db.session.commit()
     return jsonify({"message": "User information changed successfully"}), 200

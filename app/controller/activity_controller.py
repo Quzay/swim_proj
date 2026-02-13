@@ -5,7 +5,7 @@ from app.model import User, Activity
 
 activity_bp = Blueprint('activity', __name__)
 
-@activity_bp.route("/add/<int:user_id>", methods=["POST"])
+@activity_bp.route("/<int:user_id>", methods=["POST"])
 def create_activity(user_id):
     data = request.get_json()
     user = User.query.get(user_id)
@@ -21,7 +21,7 @@ def create_activity(user_id):
     db.session.commit()
     return jsonify({"message" : "Activity was succesful created"}), 200
 
-@activity_bp.route("/update/<int:user_id>" , methods = ["PATCH"])
+@activity_bp.route("/<int:user_id>" , methods = ["PATCH"])
 def update_activity(user_id):
     activity = Activity.get_last_by_user_id(user_id)
     if not activity:
@@ -37,7 +37,7 @@ def update_activity(user_id):
     db.session.commit()
     return jsonify ({"message" : "Activity was succesful update"}) , 200
 
-@activity_bp.route("/delete/<int:user_id>" , methods = ["DELETE"])
+@activity_bp.route("/<int:user_id>" , methods = ["DELETE"])
 def delete_activity(user_id):
     activity = Activity.get_last_by_user_id(user_id)
     if not activity:
@@ -46,19 +46,21 @@ def delete_activity(user_id):
     db.session.commit()
     return jsonify({"message" : "Activity was succesful deleted"}), 200
 
-@activity_bp.route("/show-last-activity/<int:user_id>" , methods = ["GET"])
+@activity_bp.route("/<int:user_id>" , methods = ["GET"])
 def show(user_id):
-    activity = Activity.get_last_by_user_id(user_id)
+    activity = Activity.get_all_activity_by_user(user_id)
     if not activity:
         return jsonify({"message" : "Activity not found"}) , 404
-    user = User.query.get(user_id)
-    return jsonify ({
-        "There is last activity": f"from user {user.username}",
-        "stroke ": activity.stroke,
-        "distance_meters" : activity.distance_meters,
-        "day" : activity.day
-    })
-@activity_bp.route("/change-last-activity/<int:user_id>" , methods = ["PUT"])
+    json = []
+    for act in activity:
+        json.append({
+            "stroke ": act.stroke,
+            "distance_meters" : act.distance_meters,
+            "day" : act.day
+        })
+    return json
+
+@activity_bp.route("/<int:user_id>" , methods = ["PUT"])
 def change_last_activity(user_id):
     activity = Activity.get_last_by_user_id(user_id)
     if not activity:
