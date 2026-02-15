@@ -1,6 +1,6 @@
 from flask import Blueprint, request, jsonify
 from app.model import db, User, Goal
-from datetime import datetime
+from datetime import datetime,date
 from sqlalchemy import desc
 
 goal_bp = Blueprint('goal' , __name__)
@@ -36,4 +36,47 @@ def show_goal(user_id):
 
 @goal_bp.route("/<int:user_id>" , methods = ["DELETE"])
 def delete_goal(user_id):
-    pass
+    data = request.get_json()
+    goal_id = data.get("goal_id")
+    if not goal_id : 
+        return jsonify ({"message":"Goal ID is required"}) , 400
+    goal = Goal.query.filter_by(id = goal_id, user_id = user_id).first()
+    if not goal:
+        return jsonify ({"message":"Goal not found or access denied"}) , 404
+    db.session.delete(goal)
+    db.session.commit()
+    return jsonify ({"message":"Goal was succesful deleted"}) , 200
+
+@goal_bp.route("/<int:user_id>" , methods = ["PUT"])
+def change_goal(user_id):
+    data = request.get_json()
+    goal_id = data.get("goal_id")
+    if not goal_id:
+        return jsonify({"message":"Goal ID is required"}) , 400
+    goal = Goal.query.filter_by(id=goal_id, user_id = user_id).first()
+    if not goal:
+        return jsonify({"message":"Goal not found or access denied"}), 404
+    required_fields = ["target_distance" , "deadline"]
+    missing_field = [field for field in required_fields if field not in data]
+    if missing_field:
+        return jsonify({"message":"Missing data"}) , 400
+    goal.target_distance = data.get("target_distance")
+    goal.deadline = date.fromisoformat(data.get("deadline"))
+    db.session.commit()
+    return jsonify({"message":"Goal was successful changed"}), 200
+
+@goal_bp.route("/<int:user_id>" , methods = ["PATCH"])
+def update_goal(user_id):
+    data = request.get_json()
+    goal_id = data.get("goal_id")
+    if not goal_id:
+        return jsonify({"message":"Goal ID is required"}) , 400
+    goal = Goal.query.filter_by(id=goal_id,user_id=user_id).first()
+    if not goal:
+        return jsonify({"message":"Goal not found or access denied"}), 404
+    if "deadline" in data:
+        goal.deadline = date.fromisoformat(data.get("deadline"))
+    if "target_distance" in data:
+        goal.target_distance = data.get("target_distance")
+    db.session.commit()
+    return jsonify({"message":"Goal was successful changed"}) , 200
