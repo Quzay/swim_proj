@@ -73,10 +73,10 @@ def get_user(user_id):
 
 @user_bp.route('/<int:user_id>', methods=['PUT'])
 def change_user(user_id):
+    data = request.get_json()
     user = User.query.get(user_id)
     if not user:
         return jsonify({"message": "User not found"}), 404
-    data = request.get_json()
     required_fields = ["username", "email", "age", "password"]
     missing_fields = [field for field in required_fields if field not in data]
     if missing_fields:

@@ -12,7 +12,7 @@ def run_seed():
     with app.app_context():
         dranisama = User(
             username="Dranislav",
-            password="nohome",
+            password_hash="nohomeqt",
             email="dranisma@gmail.com",
             age=17
         )
@@ -25,8 +25,8 @@ def run_seed():
             user_id=dranisama.id
         )
         activities = [
-            Activity(stroke="Freestyle", distance_meters=1200, user_id=dranisama.id),
-            Activity(stroke="Freestyle", distance_meters=3100, user_id=dranisama.id)
+            Activity(stroke="FREESTYLE", distance_meters=1200, user_id=dranisama.id),
+            Activity(stroke="BUTTERFLY", distance_meters=3100, user_id=dranisama.id)
         ]
         db.session.add(first_goal)
         db.session.add_all(activities)
