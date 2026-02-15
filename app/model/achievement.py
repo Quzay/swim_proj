@@ -1,16 +1,15 @@
 import datetime
+from .enums import Stroke_type
 from .base import db
 from sqlalchemy.orm import mapped_column,Mapped, relationship
-from sqlalchemy import String,ForeignKey,Time
+from sqlalchemy import String,ForeignKey,Time,Enum
 from typing import Optional,List
-
-
 
 class Achievement(db.Model):
     __tablename__ = "achievement"
 
     id:Mapped[int] = mapped_column(autoincrement=True,primary_key=True)
-    stroke:Mapped[str] = mapped_column(String(15))
+    stroke:Mapped[Stroke_type] = mapped_column(Enum(Stroke_type))
     time:Mapped[datetime.time] = mapped_column(Time(3))
     distance_meters: Mapped[int] 
 

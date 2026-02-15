@@ -1,14 +1,10 @@
 import datetime
-import enum
+from .enums import Stroke_type
 from sqlalchemy.orm import mapped_column,Mapped, relationship,validates
 from sqlalchemy import String,ForeignKey,DateTime, desc , select, Enum
 from .base import db
 
-class Stroke_type(enum.Enum):
-    FREESTYLE = "Freestyle"
-    BACKSTROKE = "Backstroke"
-    BREASTSTROKE = "Breaststroke"
-    BUTTERFLY = "Butterfly"
+
 
 class Activity(db.Model):
     __tablename__ = "activity"
@@ -38,7 +34,4 @@ class Activity(db.Model):
     
     @classmethod
     def get_all_activity_by_user(cls, user_id):
-        stmt = select(cls).where(cls.user_id == user_id)
-        res = db.session.execute(stmt)
-        all_activity = res.scalars().all()
-        return all_activity
+        return cls.query.filter_by(user_id=user_id).all()
