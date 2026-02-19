@@ -60,6 +60,7 @@ def show(user_id):
     ret = []
     for act in activity:
         ret.append({
+            "id" : act.id,
             "stroke": act.stroke.value,
             "distance_meters" : act.distance_meters,
             "day" : act.day.isoformat()

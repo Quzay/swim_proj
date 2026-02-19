@@ -28,6 +28,7 @@ def show_goal(user_id):
     if not goal:
         return jsonify({"You don't have goal"}), 404
     return jsonify({
+        "id" : goal.id,
         "distance" : f"{goal.target_distance} meters",
         "deadline" : goal.deadline ,
         "remaining_distance" : f"{goal.remaining_distance} remained meters",
