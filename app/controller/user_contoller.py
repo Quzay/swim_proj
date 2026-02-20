@@ -1,6 +1,7 @@
 from app.model import db
 from flask import request, jsonify, Blueprint
 from app.model import User
+from sqlalchemy.exc import IntegrityError 
 
 
 user_bp = Blueprint('user', __name__)
@@ -9,20 +10,37 @@ user_bp = Blueprint('user', __name__)
 def add_user():
     if request.method == "POST":
         data = request.get_json()
-        new_user = User(
-            username = data.get("username"),
-            email = data.get("email"),
-            age = data.get("age")
-        )
         password_from_data = data.get("password")
+        if not password_from_data:
+            return jsonify({"message": "Password is required"}), 400
         if len(password_from_data) < 6:
             return jsonify({"message": "Password must be at least 6 characters long"}), 400
-        if password_from_data:
+        try:
+            new_user = User(
+                username = data.get("username"),
+                email = data.get("email"),
+                age = data.get("age")
+            )
             new_user.set_password(password_from_data)
-        else:
-            return jsonify({"message": "Password is required"}), 400
-        db.session.add(new_user)
-        db.session.commit()
+            db.session.add(new_user)
+            db.session.commit()
+        except IntegrityError as e:
+            db.session.rollback()
+            error_msg = str(e.orig)
+            if "uq_user_email" in error_msg:
+                return jsonify({"message": "This email is already registered"}) , 400
+            if "ck_user_age" in error_msg:
+                return jsonify({"message":"Age must be between 5 and 100"}) , 400
+            if "ck_user_username_not_empty" in error_msg:
+                return jsonify({"message":"Username cannot be empty"}) , 400
+            if "ck_user_email_format" in error_msg:
+                return jsonify({"message":"Invalid email"}), 400
+        except ValueError as e:
+            db.session.rollback()
+            return jsonify({"message": str(e)}), 400
+        except Exception as e:
+            db.session.rollback()
+            return jsonify({"message":"An unexpected error occurred"}) , 500
         return jsonify({"message": "User added successfully"}), 201
 
 @user_bp.route('/<int:user_id>', methods=['DELETE'])

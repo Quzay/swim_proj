@@ -2,6 +2,8 @@ from flask import Blueprint, request, jsonify
 from app.model import db, User, Goal
 from datetime import datetime,date
 from sqlalchemy import desc
+from sqlalchemy.exc import IntegrityError 
+
 
 goal_bp = Blueprint('goal' , __name__)
 
@@ -9,18 +11,32 @@ goal_bp = Blueprint('goal' , __name__)
 def add_goal(user_id):
     user = User.query.get(user_id)
     if not user :
-        return jsonify({"message " : "User not found"})
+        return jsonify({"message " : "User not found"}),404
     data = request.get_json()
-    deadline_str = data.get("deadline")
-    deadline_date = datetime.strptime(deadline_str, "%Y-%m-%d").date()
-    new_goal = Goal(
+    try:
+        new_goal = Goal(
         target_distance  = data.get("target_distance"),
-        deadline = deadline_date,
+        deadline = data.get("deadline"),
         user_id = user_id
-    )
-    db.session.add(new_goal)
-    db.session.commit()
-    return jsonify({"message " : "Goal was successful created"})
+        )
+        db.session.add(new_goal)
+        db.session.commit()
+    except IntegrityError as e:
+        db.session.rollback()
+        error_msg = str(e.orig)
+        if "ck_goal_targer_distance" in error_msg:
+            return jsonify({"message":"Distance cannot be negative"}), 400
+        if "ck_goal_deadline" in error_msg:
+            return jsonify({"message":"deadline cannot be empty"}) , 400
+    except ValueError as e:
+        db.session.rollback()
+        return jsonify({"message": str(e)}) , 400
+    except Exception as e:
+        db.session.rollback()
+        print()
+        return jsonify({"message":"An unexpected error occurred",
+                        "ПОМИЛКА ТУТ": {type(e).__name__} - {e}}) , 500
+    return jsonify({"message " : "Goal was successful created"}) , 200
 
 @goal_bp.route("/<int:user_id>" , methods = ["GET"])
 def show_goal(user_id):

@@ -36,21 +36,20 @@ class User(db.Model):
     
     @validates('age')
     def validate_age(self, key, age):
+        if type(age) != int:
+            raise ValueError("Age must be int")
         if age is not None and (age < 5 or age > 100):
             raise ValueError("Age must be between 5 and 100")
         return age
     
-
     @validates('username')
     def validate_username(self, key, username):
+        if type(username) != str:
+            raise ValueError("Username must be string")
         if not username or username.strip() == '':
             raise ValueError("Username cannot be empty")
         return username.strip()
         
-
-
-    
-
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
     
