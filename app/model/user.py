@@ -30,6 +30,8 @@ class User(db.Model):
 
     @validates('email')
     def validate_email(self, key, email):
+        if type(email) != str:
+            raise ValueError("Email must be string")
         if not email or '@' not in email:
             raise ValueError("Invalid email format")
         return email
@@ -49,7 +51,16 @@ class User(db.Model):
         if not username or username.strip() == '':
             raise ValueError("Username cannot be empty")
         return username.strip()
-        
+
+    @validates('password')
+    def validate_password(self, key, password):
+        if type(password) != str:
+            raise ValueError("Username must be string")
+        if not password or password.strip() == '':
+            raise ValueError("Username cannot be empty")
+        return password.strip()
+
+
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
     
