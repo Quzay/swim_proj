@@ -6,3 +6,7 @@ class Stroke_type(enum.Enum):
     BACKSTROKE = "Backstroke"
     BREASTSTROKE = "Breaststroke"
     BUTTERFLY = "Butterfly"
+
+class UserRole(enum.Enum):
+    ADMIN = "admin"
+    USER = "user"

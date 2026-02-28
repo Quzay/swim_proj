@@ -1,6 +1,6 @@
 import os
 from flask import Flask
-from .model.base import db
+from .model.base import db,jwt
 from dotenv import load_dotenv
 
 
@@ -14,6 +14,7 @@ def create_app():
     app.config["SQLALCHEMY_DATABASE_URI"] = url
 
     db.init_app(app)
+    jwt.init_app(app)
 
     from .controller.user_contoller import user_bp
     from .controller.activity_controller import activity_bp
