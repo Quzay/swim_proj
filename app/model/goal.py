@@ -29,7 +29,7 @@ class Goal(db.Model):
 
     __table_args__ = (
         db.CheckConstraint('target_distance > 0' , name = "ck_goal_targer_distance"),
-        db.CheckConstraint('deadline != ""' , name = "ck_goal_deadline")
+        #db.CheckConstraint('deadline != ""' , name = "ck_goal_deadline")
     )
     
     @validates('target_distance')

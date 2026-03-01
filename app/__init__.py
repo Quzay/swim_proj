@@ -7,7 +7,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-def create_app():
+def create_app(config = None):
     app = Flask(__name__)
     app.config.from_prefixed_env()
 
