@@ -7,3 +7,4 @@ from .rating import Rating
 from .competition import Competition
 from .equipment import Equipment
 from .enums import Stroke_type, UserRole
+from .TokenBlockList import TokenBlockList

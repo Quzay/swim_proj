@@ -1,7 +1,7 @@
 from app.model import db
 from flask import request, jsonify, Blueprint
 from flask_jwt_extended import create_access_token, create_refresh_token , jwt_required , get_jwt, current_user , get_jwt_identity
-from app.model import User, UserRole
+from app.model import User, UserRole, TokenBlockList
 from sqlalchemy.exc import IntegrityError 
 
 
@@ -82,10 +82,20 @@ def show_profile():
 
 @user_bp.get("/refresh")
 @jwt_required(refresh=True)
-def refresh_toke():
+def refresh_token():
     identity = get_jwt_identity()
     new_access_token = create_access_token(identity=identity)
     return jsonify({"access_toke": new_access_token})
+
+@user_bp.get("/logout")
+@jwt_required(verify_type=False)
+def logout_user():
+    jwt = get_jwt()
+    jti = jwt.get("jti")
+    token_type =jwt.get("type")
+    token_b = TokenBlockList(jti=jti)
+    token_b.save()
+    return jsonify ({"message":f"{token_type} token revoked successful"}), 200
 
 @user_bp.route('/<int:user_id>', methods=['DELETE'])
 def delete_user(user_id):

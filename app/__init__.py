@@ -1,7 +1,7 @@
 import os
 from flask import Flask , jsonify
 from .model.base import db,jwt
-from .model import User
+from .model import User , TokenBlockList
 from dotenv import load_dotenv
 
 
@@ -46,6 +46,12 @@ def create_app():
     def missing_token_callback(error):
         return jsonify({"message":"Request does not contain a valid token", "error":"autarization_header"}) , 401  
      
+    @jwt.token_in_blocklist_loader
+    def token_in_blocklist_callback(jwt_header, jwt_data):
+        jti = jwt_data.get('jti')
+        token = db.session.query(TokenBlockList).filter(TokenBlockList.jti == jti).scalar()
+        return token is not None
+
     with app.app_context():
         db.create_all()
     return app
