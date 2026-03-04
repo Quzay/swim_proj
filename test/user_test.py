@@ -2,15 +2,16 @@ from .factories import UserFactory
 from app.model import User , db , UserRole
 import pytest
 from sqlalchemy.exc import IntegrityError
+from datetime import datetime
 
 def test_create_user(db_session):
-    user = UserFactory(username = "Maks")
+    user = UserFactory()
     db_session.commit()
 
     assert user.id is not None
 
 def test_user_default_role(db_session):
-    user = User(username="NewUser", email="new@test.com", password_hash="123")
+    user = UserFactory()
     db_session.add(user)
     db_session.commit()
     assert user.role == UserRole.USER
@@ -21,3 +22,18 @@ def test_user_age_limits(db_session):
         invalid_user = UserFactory(age=-5)
         db_session.commit()
     db_session.rollback()
+
+
+def test_user_password_hashing(db_session):
+    password = "secret_password_123"
+    user = UserFactory(password_hash=password)
+    db_session.commit()
+    assert user.password_hash != password 
+    assert len(user.password_hash) > 10
+
+def test_user_timestamps(db_session):
+    user = UserFactory()
+    db_session.commit()
+
+    assert user.created_at is not None
+    assert isinstance(user.created_at, datetime)

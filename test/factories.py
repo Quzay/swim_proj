@@ -15,7 +15,12 @@ class UserFactory(SQLAlcemyFactory):
     email = factory.Faker("email")
     role = UserRole.USER
     age = factory.Faker("random_int" , min = 5, max = 100)
-    password_hash = factory.Faker("password")
+    @factory.post_generation
+    def password(obj, create, extracted, **kwargs):
+        if extracted:
+            obj.set_password(extracted)
+        else:
+            obj.set_password("default_password")
 
 class GoalFactory(SQLAlcemyFactory):
     class Meta:

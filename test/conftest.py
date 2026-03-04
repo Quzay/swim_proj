@@ -35,8 +35,10 @@ def db_session(app, engine):
         transaction = connection.begin()
 
         session = db.session
+        session.bind = connection
         for factory_class in factories:
             factory_class._meta.sqlalchemy_session = session
+            factory_class.reset_sequence(0)
 
         yield session
 
