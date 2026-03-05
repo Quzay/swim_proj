@@ -11,8 +11,11 @@ def create_app(config = None):
     app = Flask(__name__)
     app.config.from_prefixed_env()
 
-    url = (os.environ.get("LINK_DB"))
-    app.config["SQLALCHEMY_DATABASE_URI"] = url
+    if not config:
+        url = (os.environ.get("LINK_DB"))
+        app.config["SQLALCHEMY_DATABASE_URI"] = url
+    else:
+        app.config.from_mapping(config)
 
     db.init_app(app)
     jwt.init_app(app)

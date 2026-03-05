@@ -12,8 +12,8 @@ def app():
         "TESTING" : True,
         "SQLALCHEMY_DATABASE_URI":"postgresql+psycopg://makson:nobodyknow@localhost:5432/pytest"
     }
-    app = create_app(config=config)
-    return app
+    _app = create_app(config=config)
+    return _app
 
 @pytest.fixture(scope='session')
 def engine(app):
@@ -29,7 +29,7 @@ def setup_db(app):
 
 
 @pytest.fixture(scope="function")
-def db_session(app, engine):
+def db_session(app, engine, setup_db):
     with app.app_context():
         connection = engine.connect()
         transaction = connection.begin()
