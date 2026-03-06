@@ -26,7 +26,7 @@ class GoalFactory(SQLAlcemyFactory):
     class Meta:
         model = Goal
     
-    target_distance = factory.Faker("random_int", min = 100, max = 10000)
+    target_distance = factory.Faker("random_int", min = 5, max = 120)
     deadline = factory.Faker("date")
 
 

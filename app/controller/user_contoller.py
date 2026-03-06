@@ -12,20 +12,23 @@ user_bp = Blueprint('user', __name__)
 def create_user():
     data = request.get_json()
     password_from_data = data.get("password")
-    if type(password_from_data) != str:
-        new_user.errors.append({"message": "Password must be string"}), 422
-    if len(password_from_data) < 6:
-        new_user.errors.append({"message": "Password must be at least 6 characters long"}), 422 
     try:
-        role_str = data.get("role")
-        role_enum = UserRole[role_str.upper()]
         new_user = User(
             username = data.get("username"),
             email = data.get("email"),
-            age = data.get("age"),
-            role = role_enum
+            age = data.get("age")
         )
+        if type(password_from_data) != str:
+            new_user.errors.append({"message": "Password must be string"}), 422
+        if len(password_from_data) < 6:
+            new_user.errors.append({"message": "Password must be at least 6 characters long"}), 422 
+        role_str = data.get("role" , "USER")
+        role_enum = UserRole[role_str.upper()]
+        
+        if new_user.errors:
+            return jsonify(new_user.errors) , 422
         new_user.set_password(password_from_data)
+        User.role = role_enum
         db.session.add(new_user)
         db.session.flush()
         db.session.commit()
@@ -38,6 +41,9 @@ def create_user():
             new_user.errors.append({"message":"Username cannot be empty"}) , 422
         if "ck_user_email_format" in error_msg:
             new_user.errors.append({"message":"Invalid email"}), 422
+        if "ck_user_age" in error_msg:
+            new_user.errors.append({"message":"Age must be between 5 and 100"}) , 422
+        
     except ValueError as e:
         db.session.rollback()
         new_user.errors.append({"message": str(e)}), 422
@@ -49,7 +55,7 @@ def create_user():
         new_user.errors = []
         return jsonify(res) , 422
     res = []
-    return jsonify({"message": "User added successfully"}), 200
+    return jsonify({"message": "User added successfully"}), 201
     
     
 @user_bp.post("/login")
