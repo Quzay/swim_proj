@@ -21,12 +21,28 @@ class Activity(db.Model):
     __table_args__ = (
         db.CheckConstraint('distance_meters > 0 ', name = "ck_activity_distance"),
     )
+    def __init__(self, **kwargs):
+            self.errors = []
+            super(Activity,self).__init__(**kwargs)
+
     @validates('distance_meters')
     def validate_distance(self, key, distance_meters):
-        if not distance_meters or distance_meters <=0:
-            raise ValueError('Distance can not be negative')
+        if type(distance_meters) == int:
+            if not distance_meters or distance_meters <=0:
+                self.errors.append({'message':'Distance can not be negative'})
+        else:
+            self.errors.append({"message":"Distance must be int"})
         return distance_meters
 
+    @validates('day')
+    def validate_date(self, key, day):
+        pass
+    
+    @validates('stroke')
+    def validate_stroke(self, key, stroke):
+        if stroke is None or stroke == "":
+            self.errors.append({"message":"Stroke is required"})
+        return stroke
 
     @classmethod
     def get_last_by_user_id (cls, user_id):

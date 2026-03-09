@@ -2,15 +2,17 @@ import pytest
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 import factory
-from app.model import db
+from app.model import db , User , UserRole
 from app import create_app
 from .factories import factories
+from flask_jwt_extended import create_access_token
 
 @pytest.fixture(scope='session')
 def app():
     config = {
         "TESTING" : True,
-        "SQLALCHEMY_DATABASE_URI":"postgresql+psycopg://makson:nobodyknow@localhost:5432/pytest"
+        "SQLALCHEMY_DATABASE_URI":"postgresql+psycopg://makson:nobodyknow@localhost:5432/pytest",
+        "JWT_SECRET_KEY": "test-secret-key-at-least-32-characters-long-12345"
     }
     _app = create_app(config=config)
     return _app
@@ -45,6 +47,22 @@ def db_session(app, engine, setup_db):
         session.close()
         transaction.rollback()
         connection.close()
+
+@pytest.fixture(scope="function")
+def auth_header(client):
+    client.post("/user/register", json={
+        "username": "Maksym",
+        "email": "Maks@gmail.com",
+        "password": "testpass",
+        "age": 25
+    })
+    response = client.post("/user/login", json={
+        "email": "Maks@gmail.com",
+        "password": "testpass"
+    })
+    data = response.get_json()
+    access_token = data["tokens"]["access"]
+    return {"Authorization": f"Bearer {access_token}"}
 
 @pytest.fixture(scope="function")
 def client(app):

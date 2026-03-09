@@ -2,26 +2,49 @@ from flask import Blueprint, request, jsonify
 from app.model import db
 from app.model import User, Activity , Stroke_type
 from datetime import datetime
+from flask_jwt_extended import jwt_required, get_jwt_identity
+from sqlalchemy.exc import IntegrityError 
 
 activity_bp = Blueprint('activity', __name__)
 
-@activity_bp.route("/<int:user_id>", methods=["POST"])
-def create_activity(user_id):
+@activity_bp.route("/", methods=["POST"])
+@jwt_required()
+def create_activity():
     data = request.get_json()
-    user = User.query.get(user_id)
+    email = get_jwt_identity()
+    user = User.query.filter_by(email = email).first()
     if not user:
-        return jsonify({"message" : "User not found"})
-    else:
-        stroke_str = data.get("stroke")
-        stroke_enum = Stroke_type[stroke_str.upper()]
+        return jsonify({"message" : "User not found"}) , 404
+    
+    stroke_str = data.get("stroke")
+    if stroke_str not in Stroke_type.__members__:
+        return jsonify({"message": f"Invalid stroke. Choose from: {list(Stroke_type.__members__.keys())}"}), 422
+    stroke_enum = Stroke_type[stroke_str.upper()]
+    try:
         new_activity = Activity(
         stroke = stroke_enum,
         distance_meters = data.get("distance_meters"),
-        user_id = user_id
+        user_id = user.id
         )
-    db.session.add(new_activity)
-    db.session.commit()
-    return jsonify({"message" : "Activity was succesful created"}), 200
+        db.session.add(new_activity)
+        db.session.commit()
+        return jsonify({"message" : "Activity was succesful created"}), 200
+    except IntegrityError as e:
+        db.session.rollback()
+        error_msg = str(e.orig)
+        if "ck_activity_distance" in error_msg:
+            new_activity.errors.append({"message":"Distance cannot be negative"})
+
+        if new_activity.errors:
+            return jsonify(new_activity.errors) , 422
+    except ValueError as e:
+        db.session.rollback()
+        new_activity.errors.append({"message":str(e)})
+    except Exception as e:
+        db.session.rollback()
+        new_activity.errors.append([{"message": f"Server error: {str(e)}"}])
+        if new_activity.errors:
+            return jsonify(new_activity.errors)
 
 @activity_bp.route("/<int:user_id>" , methods = ["PATCH"])
 def update_activity(user_id):
