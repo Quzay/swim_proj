@@ -27,6 +27,8 @@ def setup_db(app):
     with app.app_context():
         db.create_all()
         yield
+        db.session.remove()
+        db.engine.dispose()
         db.drop_all()
 
 
@@ -44,20 +46,20 @@ def db_session(app, engine, setup_db):
 
         yield session
 
-        session.close()
+        session.remove()
         transaction.rollback()
         connection.close()
 
 @pytest.fixture(scope="function")
 def auth_header(client):
     client.post("/user/register", json={
-        "username": "Maksym",
-        "email": "Maks@gmail.com",
+        "username": "test",
+        "email": "test@gmail.com",
         "password": "testpass",
         "age": 25
     })
     response = client.post("/user/login", json={
-        "email": "Maks@gmail.com",
+        "email": "test@gmail.com",
         "password": "testpass"
     })
     data = response.get_json()

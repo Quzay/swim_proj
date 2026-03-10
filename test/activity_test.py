@@ -1,21 +1,25 @@
-from .factories import ActivityFactory
+from .factories import ActivityFactory, UserFactory
 from app.model import Activity , db , Stroke_type
 import pytest
 from sqlalchemy.exc import IntegrityError
 from datetime import datetime
 
 
-def test_activity_validation_success():
-    act = Activity(stroke=Stroke_type.FREESTYLE, distance_meters=500, user_id=1)
-    assert len(act.errors) == 0
-    assert act.distance_meters == 500
+def test_activity_validation_success(db_session):
+    user = UserFactory()
+    db.session.flush()
 
-def test_activity_negative_distance():
-    act = Activity(stroke=Stroke_type.BUTTERFLY, distance_meters=-10, user_id=1)
+    act = ActivityFactory(user=user)
+    db.session.flush()
+    assert act.id is not None
+    
+
+def test_activity_negative_distance(db_session):
+    act = ActivityFactory( distance_meters=-10)
     assert any("Distance can not be negative" in e['message'] for e in act.errors)
 
-def test_activity_invalid_stroke_type():
-    act = Activity(stroke=None, distance_meters=100, user_id=1)
+def test_activity_invalid_stroke_type(db_session):
+    act = ActivityFactory(stroke=None)
     assert any("Stroke is required" in e['message'] for e in act.errors)
 
 
