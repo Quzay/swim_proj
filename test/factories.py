@@ -5,7 +5,7 @@ from app.model import User,Goal,Competition,Achievement,Rating,Activity,Equipmen
 class SQLAlcemyFactory(factory.alchemy.SQLAlchemyModelFactory):
     class Meta:
         abstract = True
-        sqlalchemy_session = db.session
+        # sqlalchemy_session = db.session
 
 class UserFactory(SQLAlcemyFactory):
     class Meta:
@@ -27,16 +27,17 @@ class GoalFactory(SQLAlcemyFactory):
         model = Goal
     
     target_distance = factory.Faker("random_int", min = 100, max = 10000)
-    deadline = factory.Faker("date")
+    deadline = factory.Faker("date_between", start_date="today", end_date="+1y")
 
 class ActivityFactory(SQLAlcemyFactory):
     class Meta:
         model = Activity
 
-    day = factory.Faker("datetime")
-    stroke: Stroke_type.FREESTYLE
+    user = factory.SubFactory(UserFactory)
+    day = factory.Faker("date_time")
+    stroke = Stroke_type.FREESTYLE
     distance_meters = factory.Faker("random_int" , min = 100, max = 10000)
-
+    
 
 
 factories = [UserFactory,GoalFactory,ActivityFactory]

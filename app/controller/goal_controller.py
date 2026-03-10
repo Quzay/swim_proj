@@ -3,46 +3,55 @@ from app.model import db, User, Goal
 from datetime import datetime,date
 from sqlalchemy import desc
 from sqlalchemy.exc import IntegrityError 
-
+from flask_jwt_extended import jwt_required, get_jwt_identity
 
 goal_bp = Blueprint('goal' , __name__)
 
-@goal_bp.route("/<int:user_id>" , methods = ["POST"])
-def add_goal(user_id):
-    user = User.query.get(user_id)
+@goal_bp.route("/" , methods = ["POST"])
+@jwt_required()
+def add_goal():
+    email = get_jwt_identity()
+    user = User.query.filter_by(email=email).first()
     if not user :
         return jsonify({"message " : "User not found"}),404
     data = request.get_json()
-    try:
-        new_goal = Goal(
+    new_goal = Goal(
         target_distance  = data.get("target_distance"),
         deadline = data.get("deadline"),
-        user_id = user_id
+        user_id = user.id
         )
+    if new_goal.errors:
+        return jsonify({"errors": new_goal.errors}), 422
+    try:
         db.session.add(new_goal)
         db.session.commit()
     except IntegrityError as e:
         db.session.rollback()
         error_msg = str(e.orig)
-        if "ck_goal_targer_distance" in error_msg:
-            return jsonify({"message":"Distance cannot be negative"}), 400
+        if "ck_goal_target_distance" in error_msg:
+            new_goal.errors.append({"message":"Distance cannot be negative"})
         if "ck_goal_deadline" in error_msg:
-            return jsonify({"message":"deadline cannot be empty"}) , 400
+            new_goal.errors.append({"message":"Deadline cannot be in the past"})
+        if new_goal.errors:
+            return jsonify({"errors":new_goal.errors}) , 422
     except ValueError as e:
         db.session.rollback()
-        return jsonify({"message": str(e)}) , 400
+        new_goal.errors.append({"message": str(e)}) 
+        if new_goal.errors:
+            return jsonify({"errors":new_goal.errors}) , 422
     except Exception as e:
         db.session.rollback()
-        print()
-        return jsonify({"message":"An unexpected error occurred",
-                        "ПОМИЛКА ТУТ": {type(e).__name__} - {e}}) , 500
-    return jsonify({"message " : "Goal was successful created"}) , 200
+        return jsonify({"message":"An unexpected error occurred"}) , 500
+    return jsonify({"message":"Goal was successful created"}) , 200
 
-@goal_bp.route("/<int:user_id>" , methods = ["GET"])
-def show_goal(user_id):
-    goal = Goal.query.filter_by(user_id=user_id).order_by(desc(Goal.id)).first()
+@goal_bp.route("/" , methods = ["GET"])
+@jwt_required()
+def show_goal():
+    email = get_jwt_identity()
+    user = User.query.filter_by(email=email).first()
+    goal = Goal.query.filter_by(user_id=user.id).order_by(desc(Goal.id)).first()
     if not goal:
-        return jsonify({"You don't have goal"}), 404
+        return jsonify({"message":"You don't have goal"}), 404
     return jsonify({
         "id" : goal.id,
         "distance" : f"{goal.target_distance} meters",

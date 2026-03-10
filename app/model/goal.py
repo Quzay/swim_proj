@@ -28,32 +28,40 @@ class Goal(db.Model):
     )
 
     __table_args__ = (
-        db.CheckConstraint('target_distance > 0' , name = "ck_goal_targer_distance"),
-        #db.CheckConstraint('deadline != ""' , name = "ck_goal_deadline")
+        db.CheckConstraint('target_distance > 0' , name = "ck_goal_target_distance"),
+        db.CheckConstraint('deadline >= CURRENT_DATE' , name = "ck_goal_deadline")
     )
+    def __init__(self, **kwargs):
+            self.errors = []
+            super(Goal,self).__init__(**kwargs)
     
     @validates('target_distance')
     def validate_target_distance(self, key, target_distance):
         if type(target_distance) != int:
-            raise ValueError('Distance must be number')
-        if not target_distance or target_distance <= 0 :
-            raise ValueError('Distance can not be negative')
+            self.errors.append('Distance must be number')
+        elif target_distance <= 0 :
+            self.errors.append('Distance can not be negative')
         return target_distance
     
     @validates('deadline')
     def validate_deadline(self, key, deadline):
-        if deadline is None :
-            raise ValueError("Deadline is required")
-        if not isinstance(deadline, (str, datetime.date)):
-            raise ValueError("Deadline must be string")
+        if deadline is None:
+            self.errors.append("Deadline is required")
+            return None
+        deadline_obj = None
         if isinstance(deadline, str):
             try:
                 deadline_obj = datetime.datetime.strptime(deadline, "%Y-%m-%d").date()
             except (ValueError, TypeError):
-                raise ValueError("Deadline format must be Y-m-d")
+                self.errors.append("Deadline format must be YYYY-MM-DD")
+        elif isinstance(deadline, (datetime.datetime, datetime.date)):
+
+            deadline_obj = deadline.date() if isinstance(deadline, datetime.datetime) else deadline
         else:
-            deadline_obj = deadline
-        if deadline_obj < datetime.date.today():
-            raise ValueError("Deadline cannot be in the past")
-        return deadline_obj
+            self.errors.append("Deadline must be a string or a date")
+        if deadline_obj:
+            if deadline_obj < datetime.date.today():
+                self.errors.append("Deadline cannot be in the past")
+            return deadline_obj
+        return deadline
     
