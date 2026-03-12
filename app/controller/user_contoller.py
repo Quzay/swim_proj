@@ -28,7 +28,7 @@ def create_user():
         if new_user.errors:
             return jsonify(new_user.errors) , 422
         new_user.set_password(password_from_data)
-        User.role = role_enum
+        new_user.role = role_enum
         db.session.add(new_user)
         db.session.flush()
         db.session.commit()

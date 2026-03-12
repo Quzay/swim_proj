@@ -33,11 +33,19 @@ class ActivityFactory(SQLAlcemyFactory):
     class Meta:
         model = Activity
 
-    user = factory.SubFactory(UserFactory)
+    
     day = factory.Faker("date_time")
     stroke = Stroke_type.FREESTYLE
     distance_meters = factory.Faker("random_int" , min = 100, max = 10000)
     
+class CompetitionFactory(SQLAlcemyFactory):
+    class Meta:
+        model = Competition
+
+    name = factory.Faker("name")
+    location = factory.Faker("city")
+    date = factory.Faker("date_between", start_date="-25y", end_date="+10y")
 
 
-factories = [UserFactory,GoalFactory,ActivityFactory]
+
+factories = [UserFactory,GoalFactory,ActivityFactory, CompetitionFactory]

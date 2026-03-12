@@ -67,5 +67,22 @@ def auth_header(client):
     return {"Authorization": f"Bearer {access_token}"}
 
 @pytest.fixture(scope="function")
+def admin_auth_header(client):
+    client.post("/user/register", json={
+        "username": "testadmin",
+        "email": "testadmin@gmail.com",
+        "password": "testadminpass",
+        "age": 25,
+        "role" :"ADMIN"
+    })
+    response = client.post("/user/login", json={
+        "email": "testadmin@gmail.com",
+        "password": "testadminpass"
+    })
+    data = response.get_json()
+    access_token = data["tokens"]["access"]
+    return {"Authorization": f"Bearer {access_token}"}
+
+@pytest.fixture(scope="function")
 def client(app):
     return app.test_client()
