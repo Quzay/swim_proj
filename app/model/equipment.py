@@ -1,10 +1,10 @@
-from .base import Base
+from .base import db
 from sqlalchemy.orm import mapped_column,Mapped,relationship
 from sqlalchemy import String,ForeignKey
 from typing import Optional
 
 
-class Equipment(Base):
+class Equipment(db.Model):
     __tablename__ = "equipment"
 
     id:Mapped[int] = mapped_column(autoincrement=True,primary_key=True)
