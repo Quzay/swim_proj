@@ -242,3 +242,52 @@ def show_all():
         "created_at": user.created_at.isoformat()
     })
     return jsonify(res)
+
+
+def create_user_logic(data):
+    password_from_data = data.get("password")
+    try:
+        new_user = User(
+            username = data.get("username"),
+            email = data.get("email"),
+            age = data.get("age"),
+            facebook_id = data.get("facebook_id")
+        )
+        if type(password_from_data) != str:
+            new_user.errors.append({"message": "Password must be string"}), 422
+        if len(password_from_data) < 6:
+            new_user.errors.append({"message": "Password must be at least 6 characters long"}), 422 
+        role_str = data.get("role" , "USER")
+        role_enum = UserRole[role_str.upper()]
+        
+        if new_user.errors:
+            return jsonify(new_user.errors) , 422
+        new_user.set_password(password_from_data)
+        new_user.role = role_enum
+        db.session.add(new_user)
+        db.session.flush()
+        db.session.commit()
+    except IntegrityError as e:
+        db.session.rollback()
+        error_msg = str(e.orig)
+        if "uq_user_email" in error_msg:
+            new_user.errors.append({"message": "This email is already registered"}) , 422
+        if "ck_user_username_not_empty" in error_msg:
+            new_user.errors.append({"message":"Username cannot be empty"}) , 422
+        if "ck_user_email_format" in error_msg:
+            new_user.errors.append({"message":"Invalid email"}), 422
+        if "ck_user_age" in error_msg:
+            new_user.errors.append({"message":"Age must be between 5 and 100"}) , 422
+        
+    except ValueError as e:
+        db.session.rollback()
+        new_user.errors.append({"message": str(e)}), 422
+    except Exception as e:
+        db.session.rollback()
+        new_user.errors.append([{"message": f"Server error: {str(e)}"}]), 500
+    if new_user.errors:
+        res = new_user.errors
+        new_user.errors = []
+        return jsonify(res) , 422
+    res = []
+    return jsonify({"message": "User added successfully"}), 201
