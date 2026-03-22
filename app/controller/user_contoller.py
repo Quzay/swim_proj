@@ -290,4 +290,4 @@ def create_user_logic(data):
         new_user.errors = []
         return jsonify(res) , 422
     res = []
-    return jsonify({"message": "User added successfully"}), 201
+    return new_user, None

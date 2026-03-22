@@ -23,14 +23,15 @@ def facebook_auth():
     email = profile.get("email")
 
     user = User.query.filter_by(facebook_id=fb_id).first()
+    if not user and email:
+        user = User.query.filter_by(email=email).first()
+        if user:
+            user.facebook_id = fb_id
+            db.session.flush()
+            db.session.commit()
     if not user:
-        if email:
-            user = User.query.filter_by(email=email).first()
-            if user:
-                user.facebook_id = fb_id
-                db.session.commit()
-        if not user:
-            fb_age = profile.get('age', 18)
+            age_data = profile.get('age_range', {})
+            fb_age = age_data.get('min', 18) if isinstance(age_data, dict) else 18
             fb_data = {
                 "username": profile.get('name'),
                 "email": email, 
