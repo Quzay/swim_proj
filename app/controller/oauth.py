@@ -41,5 +41,5 @@ def facebook_auth():
             user, errors = create_user_logic(fb_data)           
             if errors:
                 return jsonify({"error": errors}), 400
-    access_token = create_access_token(identity=user.email)
+    access_token = create_access_token(identity=user.email, additional_claims={"role": user.role})
     return jsonify({"access_token": access_token})
