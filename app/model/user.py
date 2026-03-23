@@ -17,6 +17,7 @@ class User(db.Model):
     age: Mapped[Optional[int]]
     password_hash: Mapped[str] = mapped_column(String(64))   
     role:Mapped[UserRole] = mapped_column(Enum(UserRole),default=UserRole.USER)
+    facebook_id:Mapped[Optional[str]] = mapped_column(String(100)) 
 
     goals:Mapped[List["Goal"]] = relationship(back_populates="user",cascade="all, delete-orphan")
     achievements:Mapped[List["Achievement"]] = relationship(back_populates="user",cascade="all, delete-orphan")

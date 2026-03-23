@@ -84,5 +84,23 @@ def admin_auth_header(client):
     return {"Authorization": f"Bearer {access_token}"}
 
 @pytest.fixture(scope="function")
+def mock_fb_payload():
+    return {
+        "id": "123456789",
+        "name": "Ivan Mazepa",
+        "email": "mazepa@example.com",
+        "age_range" : 23
+    }
+
+@pytest.fixture(scope="function")
+def mock_fb_payload_2():
+    return {
+        "id": "53541234",
+        "name": "Makson",
+        "email": "makson@example.com",
+        "age_range" : 23
+    }
+
+@pytest.fixture(scope="function")
 def client(app):
     return app.test_client()

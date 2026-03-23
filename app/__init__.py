@@ -1,6 +1,6 @@
 import os
 from flask import Flask , jsonify
-from .model.base import db,jwt
+from .model.base import db,jwt,oauth
 from .model import User , TokenBlockList
 from dotenv import load_dotenv
 
@@ -9,6 +9,7 @@ load_dotenv()
 
 def create_app(config = None):
     app = Flask(__name__)
+    app.config['SERVER_NAME'] = 'localhost:5000'
     app.config.from_prefixed_env()
 
     if not config:
@@ -19,18 +20,34 @@ def create_app(config = None):
 
     db.init_app(app)
     jwt.init_app(app)
+    oauth.init_app(app)
+
+    oauth.register(
+        name="facebook",
+        client_id=os.environ.get('FACEBOOK_CLIENT_ID'),
+        client_secret=os.environ.get('FACEBOOK_CLIENT_SECRET'),
+        access_token_url='https://graph.facebook.com/oauth/access_token',
+        access_token_params=None,
+        authorize_url='https://www.facebook.com/dialog/oauth',
+        authorize_params=None,
+        api_base_url='https://graph.facebook.com/',
+        client_kwargs={'scope': 'email'},
+    )
+
+
     from .controller.users import users_bp
     from .controller.user_contoller import user_bp
     from .controller.activity_controller import activity_bp
     from .controller.goal_controller import goal_bp
     from .controller.competition_controller import competition_bp
+    from .controller.oauth import auth_bp
     
     app.register_blueprint(user_bp, url_prefix='/user')
     app.register_blueprint(activity_bp, url_prefix="/activity")
     app.register_blueprint(goal_bp, url_prefix = "/goal")
     app.register_blueprint(competition_bp, url_prefix = "/competition")
     app.register_blueprint(users_bp, url_prefix ='/users')
-
+    app.register_blueprint(auth_bp, url_prefix = '/auth')
 
     @jwt.user_lookup_loader
     def user_lookup_callback(_jwt_headers,jwt_data):
