@@ -41,6 +41,7 @@ def create_app(config = None):
     from .controller.goal_controller import goal_bp
     from .controller.competition_controller import competition_bp
     from .controller.oauth import auth_bp
+    from .controller.challenge_controller import challenge_bp
     
     app.register_blueprint(user_bp, url_prefix='/user')
     app.register_blueprint(activity_bp, url_prefix="/activity")
@@ -48,6 +49,7 @@ def create_app(config = None):
     app.register_blueprint(competition_bp, url_prefix = "/competition")
     app.register_blueprint(users_bp, url_prefix ='/users')
     app.register_blueprint(auth_bp, url_prefix = '/auth')
+    app.register_blueprint(challenge_bp, url_prefix = '/challenge')
 
     @jwt.user_lookup_loader
     def user_lookup_callback(_jwt_headers,jwt_data):
