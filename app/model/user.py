@@ -23,7 +23,7 @@ class User(db.Model):
     achievements:Mapped[List["Achievement"]] = relationship(back_populates="user",cascade="all, delete-orphan")
     ratings:Mapped[List["Rating"]] = relationship(back_populates="user",cascade="all, delete-orphan")
     activity:Mapped[List["Activity"]] = relationship(back_populates="user",cascade="all, delete-orphan")
-
+    user_challenges: Mapped[List["User_challenge"]] = relationship(back_populates="user", cascade="all, delete-orphan")
     __table_args__ = (
         db.UniqueConstraint('email', name='uq_user_email'),
         db.CheckConstraint('age BETWEEN 5 and 100', name='ck_user_age'),

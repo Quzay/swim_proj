@@ -21,5 +21,5 @@ class Challenge(db.Model):
     )
 
     def get_challenge_by_id(challenge_id):
-        return Challange.query.get(challenge_id)
+        return Challenge.query.get(challenge_id)
     

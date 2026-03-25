@@ -1,6 +1,6 @@
 from flask import Blueprint, request, jsonify
 from app.model import db
-from app.model import User, Activity , Stroke_type
+from app.model import User, Activity , Stroke_type , User_challenge
 from datetime import datetime
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from sqlalchemy.exc import IntegrityError 
@@ -28,6 +28,10 @@ def create_activity():
         )
         db.session.add(new_activity)
         db.session.commit()
+        # user_active_challenge = User_challenge.query.get(user.id)
+        # if user_active_challenge:
+        #     if user_active_challenge.status == "ACTIVE":
+        #  Треба буде доробити після добавлення актівіті дистанція автоматично йшла в user_chellenge похідний атрибут current_value і там дальше якусь логіку
         return jsonify({"message" : "Activity was succesful created"}), 200
     except IntegrityError as e:
         db.session.rollback()
@@ -45,24 +49,6 @@ def create_activity():
         new_activity.errors.append([{"message": f"Server error: {str(e)}"}])
         if new_activity.errors:
             return jsonify(new_activity.errors)
-
-@activity_bp.route("/<int:user_id>" , methods = ["PATCH"])
-def update_activity(user_id):
-    data = request.get_json()
-    activity_id = data.get("activity_id")
-    activity = Activity.query.filter_by(id = activity_id, user_id = user_id).first()
-    if not activity:
-        return jsonify ({"message":"Activity not found or access denied"}) , 404
-    
-    if "stroke" in data:
-        stroke_enum = Stroke_type[data.get("stroke").upper()]
-        activity.stroke = stroke_enum
-    if "distance_meters" in data:
-        activity.distance_meters = data.get("distance_meters")
-    if "day" in data:
-        activity.day = datetime.fromisoformat(data.get("day"))
-    db.session.commit()
-    return jsonify ({"message" : "Activity was succesful update"}) , 200
 
 @activity_bp.route("/<int:user_id>" , methods = ["DELETE"])
 def delete_activity(user_id):
@@ -108,39 +94,3 @@ def change_last_activity(user_id):
     db.session.commit()
     return jsonify({"message" : "Activity was successful changed"}) , 200
 
-
-
-# @activity_bp.route("/del/<int:activity_id>" , methods = ["DELETE"])
-# def del_activity(activity_id):
-#     activity = Activity.query.get(activity_id)
-#     if not activity:
-#         return jsonify ({"message" : "Activity not found"}) , 404
-#     db.session.delete(activity)
-#     db.session.commit()
-#     return jsonify ({"message" : "Activity was successful deleted"}) , 200
-
-# @activity_bp.route("/show/<int:activity_id>" , methods = ["GET"])
-# def show_activity(activity_id):
-#     activity = Activity.query.get(activity_id)
-#     if not activity: 
-#         return jsonify ({"message " : "Activity not found"}) , 404
-#     return jsonify({
-#         "stroke" : activity.stroke.value,
-#         "distance_meters" : activity.distance_meters,
-#         "day" : activity.day.isoformat()
-#     }) , 200
-
-# @activity_bp.route("/up/<int:activity_id>" , methods = ["PATCH"])
-# def up_activity(activity_id):
-#     activity = Activity.query.get(activity_id)
-#     if not activity: 
-#         return jsonify ({"message " : "Activity not found"}) , 404
-#     data = request.get_json()
-#     if "stroke" in data:
-#         activity.stroke = data["stroke"]
-#     if "distance_meters" in data:
-#         activity.distance_meters = data["distance_meters"]
-#     if "day" in data:
-#         activity.day = data["day"]
-#     db.session.commit()
-#     return jsonify({"message" : "Activity was updated"}) , 200
