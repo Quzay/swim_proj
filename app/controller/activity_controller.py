@@ -1,7 +1,7 @@
 from flask import Blueprint, request, jsonify
 from app.model import db
-from app.model import User, Activity , Stroke_type , User_challenge
-from datetime import datetime
+from app.model import User, Activity , Stroke_type , User_challenge , Challenge
+from datetime import datetime , date
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from sqlalchemy.exc import IntegrityError 
 
@@ -27,10 +27,16 @@ def create_activity():
         user_id = user.id
         )
         db.session.add(new_activity)
+        db.session.flush()
+
+        user_active_challenge = User_challenge.query.filter_by(user_id = user.id , status = "ACTIVE").first()
+        if user_active_challenge:
+            db.session.refresh(user_active_challenge)
+            challenge = Challenge.query.get(user_active_challenge.challenge_id)
+            if user_active_challenge.current_value >= challenge.distance:
+                user_active_challenge.status = "COMPLETED" #mb need enum....
+                user_active_challenge.compleated_at = date.today()
         db.session.commit()
-        # user_active_challenge = User_challenge.query.get(user.id)
-        # if user_active_challenge:
-        #     if user_active_challenge.status == "ACTIVE":
         #  Треба буде доробити після добавлення актівіті дистанція автоматично йшла в user_chellenge похідний атрибут current_value і там дальше якусь логіку
         return jsonify({"message" : "Activity was succesful created"}), 200
     except IntegrityError as e:
