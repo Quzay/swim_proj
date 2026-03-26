@@ -13,6 +13,7 @@ class Challenge(db.Model):
     image: Mapped[str] = mapped_column(Text)
     created_at: Mapped[datetime.date] = mapped_column(Date())
     expired_at: Mapped[datetime.date] = mapped_column(Date())
+    distance:Mapped[int] = mapped_column()
 
     user_challenges: Mapped[List["User_challenge"]] = relationship(back_populates="challenge")
 
