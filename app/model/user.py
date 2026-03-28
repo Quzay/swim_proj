@@ -3,9 +3,10 @@ import datetime
 from typing import Optional,List
 from .base import db
 from sqlalchemy.orm import mapped_column,Mapped, relationship, validates
-from sqlalchemy import String,DateTime,Enum
+from sqlalchemy import String,DateTime,Enum, select
 from sqlalchemy.sql import func
 from .enums import UserRole
+from .association import user_competition_association_table
 
 class User(db.Model):
     __tablename__ = "user"
@@ -23,7 +24,11 @@ class User(db.Model):
     achievements:Mapped[List["Achievement"]] = relationship(back_populates="user",cascade="all, delete-orphan")
     ratings:Mapped[List["Rating"]] = relationship(back_populates="user",cascade="all, delete-orphan")
     activity:Mapped[List["Activity"]] = relationship(back_populates="user",cascade="all, delete-orphan")
-    user_challenges: Mapped[List["User_challenge"]] = relationship(back_populates="user", cascade="all, delete-orphan")
+    
+    competitions: Mapped[List["Competition"]] = relationship(
+        secondary=user_competition_association_table,
+        back_populates="users"
+    )
     __table_args__ = (
         db.UniqueConstraint('email', name='uq_user_email'),
         db.CheckConstraint('age BETWEEN 5 and 100', name='ck_user_age'),
@@ -77,4 +82,6 @@ class User(db.Model):
         else:
             return False
     
-    
+    @classmethod
+    def find_by_email(cls, email):
+       return db.session.execute(select(cls).filter_by(email=email)).scalar_one_or_none()

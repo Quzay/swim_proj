@@ -16,8 +16,8 @@ class Achievement(db.Model):
     ratings:Mapped[List["Rating"]] = relationship(back_populates="achievement")
     equipments:Mapped[Optional[List["Equipment"]]] = relationship(back_populates="achievement")
 
-    competition_id:Mapped[int] = mapped_column(ForeignKey("competition.id"))
+    
     user_id:Mapped[int] = mapped_column(ForeignKey("user.id"))
     
     user:Mapped["User"] = relationship(back_populates="achievements")
-    competition:Mapped["Competition"] = relationship(back_populates="achievements")
+    

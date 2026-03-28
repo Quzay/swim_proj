@@ -8,7 +8,7 @@ class TokenBlockList(db.Model):
     __table_name__ = "tokenblocklost"
     id:Mapped[int] = mapped_column(autoincrement=True, primary_key=True)
     jti: Mapped[str] = mapped_column()
-    created_at:Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    created_at:Mapped[datetime] = mapped_column(DateTime(), server_default=func.now())
 
     def __repr__(self):
         return f"<Token {self.jti}"
