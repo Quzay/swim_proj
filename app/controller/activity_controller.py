@@ -1,6 +1,6 @@
 from flask import Blueprint, request, jsonify
 from app.model import db
-from app.model import User, Activity , Stroke_type , User_challenge , Challenge
+from app.model import User, Activity , Stroke_type , User_challenge , Challenge , Goal , Status
 from datetime import datetime , date
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from sqlalchemy.exc import IntegrityError 
@@ -28,16 +28,15 @@ def create_activity():
         )
         db.session.add(new_activity)
         db.session.flush()
-
-        user_active_challenge = User_challenge.query.filter_by(user_id = user.id , status = "ACTIVE").first()
-        if user_active_challenge:
-            db.session.refresh(user_active_challenge)
-            challenge = Challenge.query.get(user_active_challenge.challenge_id)
-            if user_active_challenge.current_value >= challenge.distance:
-                user_active_challenge.status = "COMPLETED" #mb need enum....
-                user_active_challenge.compleated_at = date.today()
+        user_goal = Goal.query.filter_by(user_id=user.id).first()
+        if user_goal:
+            if user_goal.status == Status.ACTIVE:
+                db.session.refresh(user_goal)
+                print(user_goal.remaining_distance)
+                if user_goal.remaining_distance <= 0:
+                    user_goal.status = Status["COMPLETED"]
+                    user_goal.deadline = date.today()
         db.session.commit()
-        #  Треба буде доробити після добавлення актівіті дистанція автоматично йшла в user_chellenge похідний атрибут current_value і там дальше якусь логіку
         return jsonify({"message" : "Activity was succesful created"}), 200
     except IntegrityError as e:
         db.session.rollback()
