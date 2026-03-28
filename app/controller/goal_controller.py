@@ -10,8 +10,7 @@ goal_bp = Blueprint('goal' , __name__)
 @goal_bp.route("/" , methods = ["POST"])
 @jwt_required()
 def add_goal():
-    email = get_jwt_identity()
-    user = User.query.filter_by(email=email).first()
+    user = User.find_by_email(get_jwt_identity())
     if not user :
         return jsonify({"message " : "User not found"}),404
     data = request.get_json()
@@ -49,8 +48,7 @@ def add_goal():
 @goal_bp.route("/" , methods = ["GET"])
 @jwt_required()
 def show_goal():
-    email = get_jwt_identity()
-    user = User.query.filter_by(email=email).first()
+    user = User.find_by_email(get_jwt_identity())
     goal = Goal.query.filter_by(user_id=user.id).order_by(desc(Goal.id)).first()
     if not goal:
         return jsonify({"message":"You don't have goal"}), 404
@@ -64,26 +62,30 @@ def show_goal():
         "status" : goal.status
     }) , 200
 
-@goal_bp.route("/<int:user_id>" , methods = ["DELETE"])
-def delete_goal(user_id):
+@goal_bp.route("/" , methods = ["DELETE"])
+@jwt_required()
+def delete_goal():
+    user = User.find_by_email(get_jwt_identity())
     data = request.get_json()
     goal_id = data.get("goal_id")
     if not goal_id : 
         return jsonify ({"message":"Goal ID is required"}) , 400
-    goal = Goal.query.filter_by(id = goal_id, user_id = user_id).first()
+    goal = Goal.query.filter_by(id = goal_id, user_id = user.id).first()
     if not goal:
         return jsonify ({"message":"Goal not found or access denied"}) , 404
     db.session.delete(goal)
     db.session.commit()
     return jsonify ({"message":"Goal was succesful deleted"}) , 200
 
-@goal_bp.route("/<int:user_id>" , methods = ["PUT"])
-def change_goal(user_id):
+@goal_bp.route("/" , methods = ["PUT"])
+@jwt_required()
+def change_goal():
+    user = User.find_by_email(get_jwt_identity())
     data = request.get_json()
     goal_id = data.get("goal_id")
     if not goal_id:
         return jsonify({"message":"Goal ID is required"}) , 400
-    goal = Goal.query.filter_by(id=goal_id, user_id = user_id).first()
+    goal = Goal.query.filter_by(id=goal_id, user_id = user.id).first()
     if not goal:
         return jsonify({"message":"Goal not found or access denied"}), 404
     required_fields = ["target_distance" , "deadline"]
@@ -95,18 +97,3 @@ def change_goal(user_id):
     db.session.commit()
     return jsonify({"message":"Goal was successful changed"}), 200
 
-@goal_bp.route("/<int:user_id>" , methods = ["PATCH"])
-def update_goal(user_id):
-    data = request.get_json()
-    goal_id = data.get("goal_id")
-    if not goal_id:
-        return jsonify({"message":"Goal ID is required"}) , 400
-    goal = Goal.query.filter_by(id=goal_id,user_id=user_id).first()
-    if not goal:
-        return jsonify({"message":"Goal not found or access denied"}), 404
-    if "deadline" in data:
-        goal.deadline = date.fromisoformat(data.get("deadline"))
-    if "target_distance" in data:
-        goal.target_distance = data.get("target_distance")
-    db.session.commit()
-    return jsonify({"message":"Goal was successful changed"}) , 200

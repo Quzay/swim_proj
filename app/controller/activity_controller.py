@@ -1,6 +1,6 @@
 from flask import Blueprint, request, jsonify
 from app.model import db
-from app.model import User, Activity , Stroke_type , User_challenge , Challenge , Goal , Status
+from app.model import User, Activity , Stroke_type , Goal , Status
 from datetime import datetime , date
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from sqlalchemy.exc import IntegrityError 
@@ -11,8 +11,7 @@ activity_bp = Blueprint('activity', __name__)
 @jwt_required()
 def create_activity():
     data = request.get_json()
-    email = get_jwt_identity()
-    user = User.query.filter_by(email = email).first()
+    user = User.find_by_email(get_jwt_identity())
     if not user:
         return jsonify({"message" : "User not found"}) , 404
     
