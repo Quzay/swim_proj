@@ -9,4 +9,4 @@ from .equipment import Equipment
 from .enums import Stroke_type, UserRole , Status
 from .TokenBlockList import TokenBlockList
 from .challenge import Challenge
-from .user_challenge import User_challenge
+from .association import user_competition_association_table
