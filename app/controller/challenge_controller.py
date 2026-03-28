@@ -1,14 +1,13 @@
 from flask import Blueprint, request, jsonify
-from app.model import db , Challenge, User , User_challenge
-from datetime import date
+from app.model import db , Challenge, User 
 from flask_jwt_extended import jwt_required, get_jwt , get_jwt_identity
 from sqlalchemy.exc import IntegrityError 
 
 challenge_bp = Blueprint("challenge" , __name__)
 
-@challenge_bp.post("/")
+@challenge_bp.post("/competition/<int:competition_id>/challenge")
 @jwt_required()
-def create_challenge():
+def create_challenge(competition_id):
     claims = get_jwt()
     if claims.get("role") != "admin":
         return jsonify({"message":"You dont have permission"}) , 403
@@ -16,10 +15,8 @@ def create_challenge():
     new_chellenge = Challenge(
         name = data.get("name"),
         description = data.get("description"),
-        image = data.get("image"),
-        created_at = date.today(),
-        expired_at = data.get("expired_at"),
-        distance = data.get("distance")
+        distance = data.get("distance"),
+        competition_id = competition_id
     )
     db.session.add(new_chellenge)
     db.session.commit()

@@ -1,8 +1,9 @@
 import datetime
 from .enums import Stroke_type
-from sqlalchemy.orm import mapped_column,Mapped, relationship,validates
-from sqlalchemy import String,ForeignKey,DateTime, desc , select, Enum
+from sqlalchemy.orm import mapped_column,Mapped, relationship,validates 
+from sqlalchemy import String,ForeignKey,DateTime, desc , select, Enum  , func
 from .base import db
+
 
 
 
@@ -10,7 +11,7 @@ class Activity(db.Model):
     __tablename__ = "activity"
 
     id:Mapped[int] = mapped_column(autoincrement=True,primary_key=True)
-    day:Mapped[datetime.datetime] = mapped_column(DateTime(timezone=True), default=lambda:datetime.datetime.now(datetime.timezone.utc))
+    day:Mapped[datetime.datetime] = mapped_column(DateTime(), server_default=func.now())
     stroke:Mapped[Stroke_type] = mapped_column(Enum(Stroke_type))
     distance_meters: Mapped[int] 
 
