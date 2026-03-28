@@ -1,8 +1,9 @@
 import datetime
 from .base import db
 from sqlalchemy.orm import mapped_column,Mapped, relationship , validates
-from sqlalchemy import String,Date
+from sqlalchemy import String,DateTime, func
 from typing import Optional,List
+from .association import user_competition_association_table
 
 class Competition(db.Model):
     __tablename__ = "competition"
@@ -10,9 +11,16 @@ class Competition(db.Model):
     id:Mapped[int] = mapped_column(autoincrement=True,primary_key=True)
     name:Mapped[str] = mapped_column(String(25))
     location:Mapped[str] = mapped_column(String(100))
-    date:Mapped[Optional[datetime.date]] = mapped_column(Date())
+    date:Mapped[Optional[datetime.datetime]] = mapped_column(DateTime(), server_default=func.now())
+    is_open:Mapped[bool] = mapped_column(default=True)
+    amount:Mapped[int] = mapped_column()
 
-    achievements:Mapped[List["Achievement"]] = relationship(back_populates="competition")
+    challenges:Mapped[List["Challenge"]] = relationship(back_populates="competitions")
+    users: Mapped[List["User"]] = relationship(
+        secondary=user_competition_association_table,
+        back_populates="competitions"
+    )
+
 
     __table_args__ = (
         db.CheckConstraint("name != ''", name = "ck_competition_name"),
@@ -37,8 +45,8 @@ class Competition(db.Model):
             self.errors.append({"message":"Location cannot be empty"})
         return location
 
-    @validates('date')
-    def validate_date(self, key, date):
-        if date and date < datetime.date(2000, 1, 1):
-            self.errors.append({"message":"Date cannot be earlier than 2000"})
-        return date
+    # @validates('date')
+    # def validate_date(self, key, date):
+    #     if date and date < datetime.date(2000, 1, 1):
+    #         self.errors.append({"message":"Date cannot be earlier than 2000"})
+    #     return date
