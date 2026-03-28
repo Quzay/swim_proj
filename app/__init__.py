@@ -3,7 +3,8 @@ from flask import Flask , jsonify
 from .model.base import db,jwt,oauth
 from .model import User , TokenBlockList
 from dotenv import load_dotenv
-
+from flask_migrate import Migrate
+import app.model
 
 load_dotenv()
 
@@ -18,6 +19,7 @@ def create_app(config = None):
     else:
         app.config.from_mapping(config)
 
+    migrate = Migrate(app, db)
     db.init_app(app)
     jwt.init_app(app)
     oauth.init_app(app)
@@ -49,7 +51,7 @@ def create_app(config = None):
     app.register_blueprint(competition_bp, url_prefix = "/competition")
     app.register_blueprint(users_bp, url_prefix ='/users')
     app.register_blueprint(auth_bp, url_prefix = '/auth')
-    app.register_blueprint(challenge_bp, url_prefix = '/challenge')
+    app.register_blueprint(challenge_bp)
 
     @jwt.user_lookup_loader
     def user_lookup_callback(_jwt_headers,jwt_data):
@@ -74,7 +76,7 @@ def create_app(config = None):
         token = db.session.query(TokenBlockList).filter(TokenBlockList.jti == jti).scalar()
         return token is not None
 
-    with app.app_context():
-        db.create_all()
+    # with app.app_context():
+    #     db.create_all()
     return app
         
