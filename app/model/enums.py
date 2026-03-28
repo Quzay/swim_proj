@@ -11,7 +11,7 @@ class UserRole(str, enum.Enum):
     ADMIN = "admin"
     USER = "user"
 
-class Challenge_status(str, enum.Enum):
+class Status(str, enum.Enum):
     ACTIVE = "active"
     FAILURE = "failure"
     COMPLETED = "completed"
