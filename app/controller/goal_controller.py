@@ -1,5 +1,5 @@
 from flask import Blueprint, request, jsonify
-from app.model import db, User, Goal
+from app.model import db, User, Goal , Status
 from datetime import datetime,date
 from sqlalchemy import desc
 from sqlalchemy.exc import IntegrityError 
@@ -15,10 +15,12 @@ def add_goal():
     if not user :
         return jsonify({"message " : "User not found"}),404
     data = request.get_json()
+    status_enum = Status["ACTIVE"]
     new_goal = Goal(
         target_distance  = data.get("target_distance"),
         deadline = data.get("deadline"),
-        user_id = user.id
+        user_id = user.id,
+        status = status_enum
         )
     if new_goal.errors:
         return jsonify({"errors": new_goal.errors}), 422
@@ -57,7 +59,9 @@ def show_goal():
         "distance" : f"{goal.target_distance} meters",
         "deadline" : goal.deadline ,
         "remaining_distance" : f"{goal.remaining_distance} remained meters",
-        "days_left" : f"{goal.days_left} day"
+        "days_left" : f"{goal.days_left} day",
+        "created_at" : goal.created_at,
+        "status" : goal.status
     }) , 200
 
 @goal_bp.route("/<int:user_id>" , methods = ["DELETE"])

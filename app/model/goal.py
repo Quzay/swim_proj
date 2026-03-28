@@ -2,7 +2,8 @@ import datetime
 from .base import db
 from .activity import Activity
 from sqlalchemy.orm import mapped_column,Mapped,relationship,column_property, validates
-from sqlalchemy import ForeignKey,Date,select,func
+from sqlalchemy import ForeignKey,Date,select,func , DateTime , Enum
+from .enums import Status
 
 class Goal(db.Model):
     __tablename__ = "goal"
@@ -11,14 +12,13 @@ class Goal(db.Model):
     target_distance: Mapped[int] = mapped_column()
     deadline: Mapped[datetime.date] = mapped_column(Date())
     user_id:Mapped[int] = mapped_column(ForeignKey("user.id"))
-
+    created_at:Mapped[datetime.datetime] = mapped_column(DateTime(), server_default=func.now())
     user:Mapped["User"] = relationship(back_populates="goals")
-
+    status:Mapped[Status] = mapped_column(Enum(Status))
     remaining_distance:Mapped[int] = column_property(
        target_distance - (
         select(func.coalesce(func.sum(Activity.distance_meters), 0))
-       .where(Activity.user_id == user_id)
-       .correlate_except(Activity)
+       .where(Activity.user_id == user_id , Activity.day >= created_at , func.date(Activity.day) <= deadline)
        .scalar_subquery()
        )    
     )
