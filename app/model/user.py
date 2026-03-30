@@ -14,7 +14,7 @@ class User(db.Model):
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     username: Mapped[str] = mapped_column(String(30))
     email: Mapped[str] = mapped_column(String(40) , unique=True)
-    created_at:Mapped[datetime.datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    created_at:Mapped[datetime.datetime] = mapped_column(DateTime(timezone=True), default=func.now())
     age: Mapped[Optional[int]]
     password_hash: Mapped[str] = mapped_column(String(64))   
     role:Mapped[UserRole] = mapped_column(Enum(UserRole),default=UserRole.USER)

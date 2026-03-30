@@ -11,7 +11,7 @@ class Competition(db.Model):
     id:Mapped[int] = mapped_column(autoincrement=True,primary_key=True)
     name:Mapped[str] = mapped_column(String(25))
     location:Mapped[str] = mapped_column(String(100))
-    date:Mapped[Optional[datetime.datetime]] = mapped_column(DateTime(), server_default=func.now())
+    date:Mapped[Optional[datetime.datetime]] = mapped_column(DateTime(), default=func.now())
     is_open:Mapped[bool] = mapped_column(default=True)
     amount:Mapped[int] = mapped_column()
 

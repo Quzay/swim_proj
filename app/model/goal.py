@@ -10,9 +10,9 @@ class Goal(db.Model):
 
     id: Mapped[int] = mapped_column(autoincrement=True, primary_key=True)
     target_distance: Mapped[int] = mapped_column()
-    deadline: Mapped[datetime.datetime] = mapped_column(DateTime(), server_default=func.now())
+    deadline: Mapped[datetime.datetime] = mapped_column(DateTime(), default=func.now())
     user_id:Mapped[int] = mapped_column(ForeignKey("user.id"))
-    created_at:Mapped[datetime.datetime] = mapped_column(DateTime(), server_default=func.now())
+    created_at:Mapped[datetime.datetime] = mapped_column(DateTime(), default=func.now())
     user:Mapped["User"] = relationship(back_populates="goals")
     status:Mapped[Status] = mapped_column(Enum(Status))
 

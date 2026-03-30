@@ -11,7 +11,7 @@ class Activity(db.Model):
     __tablename__ = "activity"
 
     id:Mapped[int] = mapped_column(autoincrement=True,primary_key=True)
-    day:Mapped[datetime.datetime] = mapped_column(DateTime(), server_default=func.now())
+    day:Mapped[datetime.datetime] = mapped_column(DateTime(), default=func.now())
     stroke:Mapped[Stroke_type] = mapped_column(Enum(Stroke_type))
     distance_meters: Mapped[int] 
 
