@@ -12,6 +12,8 @@ class Challenge(db.Model):
     description:Mapped[Optional[str]] = mapped_column(String(110))
     distance:Mapped[int] = mapped_column()
 
+    achievements:Mapped[List["Achievement"]] = relationship(back_populates="challenge")
+
     competition_id:Mapped[int] = mapped_column(ForeignKey("competition.id"))
     competitions: Mapped["Competition"] = relationship(back_populates="challenges")
     
