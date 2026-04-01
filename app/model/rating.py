@@ -13,6 +13,8 @@ class Rating(db.Model):
 
     user_id:Mapped[int] = mapped_column(ForeignKey("user.id"))
     achievement_id:Mapped[int] = mapped_column(ForeignKey("achievement.id"))
+    competition_id:Mapped[int] = mapped_column(ForeignKey("competition.id"))
 
     user:Mapped["User"] = relationship(back_populates="ratings")
     achievement:Mapped["Achievement"] = relationship(back_populates="ratings")
+    competition:Mapped["Competition"] = relationship(back_populates="ratings")

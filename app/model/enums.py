@@ -12,6 +12,6 @@ class UserRole(str, enum.Enum):
     USER = "user"
 
 class Status(str, enum.Enum):
-    ACTIVE = "active"
-    FAILURE = "failure"
-    COMPLETED = "completed"
+    ACTIVE = "ACTIVE"
+    FAILURE = "FAILURE"
+    COMPLETED = "COMPLETED"
