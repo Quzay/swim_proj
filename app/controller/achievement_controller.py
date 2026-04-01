@@ -1,8 +1,8 @@
 from flask import Blueprint, request, jsonify
-from app.model import db , Achievement, User , user_competition_association_table , Stroke_type
+from app.model import db , Achievement, User , user_competition_association_table , Stroke_type, Competition , Challenge, Status, Rating
 from flask_jwt_extended import jwt_required, get_jwt , get_jwt_identity
 from sqlalchemy.exc import IntegrityError 
-from sqlalchemy import select , exists
+from sqlalchemy import select , exists , func
 
 achievement_bp = Blueprint("achievement" , __name__)
 
@@ -31,5 +31,19 @@ def create_achievement(challenge_id,competition_id):
     challenge_id = challenge_id
     )
     db.session.add(new_achievement)
+    competition = db.session.get(Competition, competition_id)
+    exepted = competition.amount * db.session.execute(
+        select(func.count())
+        .select_from(Challenge)
+        .where(Challenge.competition_id == competition_id)
+    ).scalar()
+        
+    current = db.session.execute(
+        select(func.count(Achievement.id))
+        .join(Challenge, Achievement.challenge_id == Challenge.id)
+        .where(Challenge.competition_id == competition_id)
+    ).scalar() or 0
+    if current >= exepted:
+        competition.status = Status.COMPLETED
     db.session.commit() 
     return jsonify({"message":"You successful created an achievement"}) , 200
