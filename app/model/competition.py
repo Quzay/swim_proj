@@ -1,9 +1,10 @@
 import datetime
 from .base import db
 from sqlalchemy.orm import mapped_column,Mapped, relationship , validates
-from sqlalchemy import String,DateTime, func
+from sqlalchemy import String,DateTime, func, Enum
 from typing import Optional,List
 from .association import user_competition_association_table
+from .enums import Status
 
 class Competition(db.Model):
     __tablename__ = "competition"
@@ -14,7 +15,9 @@ class Competition(db.Model):
     date:Mapped[Optional[datetime.datetime]] = mapped_column(DateTime(), default=func.now())
     is_open:Mapped[bool] = mapped_column(default=True)
     amount:Mapped[int] = mapped_column()
+    status:Mapped[Optional[Status]]= mapped_column(Enum(Status) , default=Status.ACTIVE , server_default=Status.ACTIVE)
 
+    ratings:Mapped[List["Rating"]] = relationship(back_populates="competition")
     challenges:Mapped[List["Challenge"]] = relationship(back_populates="competitions")
     users: Mapped[List["User"]] = relationship(
         secondary=user_competition_association_table,
