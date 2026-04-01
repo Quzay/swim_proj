@@ -6,3 +6,4 @@ from .goal_controller import goal_bp
 from .oauth import auth_bp
 from .user_contoller import user_bp
 from .users import users_bp
+from .rating_conroller import rating_bp
