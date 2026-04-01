@@ -1,0 +1,77 @@
+from datetime import datetime
+from flask import Blueprint, request, jsonify
+from app.model import db, Competition, Challenge, Achievement, Rating, User
+from flask_jwt_extended import jwt_required, get_jwt, get_jwt_identity
+from sqlalchemy.exc import IntegrityError 
+from sqlalchemy import func, select
+
+rating_bp = Blueprint("rating" , __name__)
+
+@rating_bp.post("/competition/<int:competition_id>/leaderboard")
+def create_leaderboard(competition_id):
+    competition = db.session.get(Competition, competition_id)
+    if not competition:
+        return jsonify({"message":"competition not found"}) , 404
+    challenges = db.session.execute(select(Challenge).where(Challenge.competition_id==competition_id)).scalars().all()
+    for challenge in challenges:
+        bonus = 30
+        achievements = db.session.execute(select(Achievement).
+                                         where(Achievement.challenge_id == challenge.id)
+                                         .order_by(Achievement.time.asc())
+                                         ).scalars().all()
+        for achievement in achievements:
+            new_rating = Rating(
+                value = 50+bonus,
+                achievement_id = achievement.id,
+                user_id = achievement.user_id,
+                competition_id = competition_id
+            )
+            db.session.add(new_rating)
+            if bonus > 0:
+                bonus=bonus-10
+    db.session.commit()
+    return jsonify({"message":"Rating successful created"}), 200
+
+@rating_bp.get("/competition/<int:competition_id>/leaderboard")
+def show_compet_leaderboard(competition_id):
+    competition = db.session.get(Competition, competition_id)
+    ratings = db.session.execute(select(Rating.user_id, func.sum(Rating.value).label("total_score"))
+                                .where(Rating.competition_id == competition_id)
+                                .group_by(Rating.user_id)
+                                .order_by(func.sum(Rating.value).desc())
+                                ).all()
+    res = []
+    place = 1
+    for rating in ratings:
+        user = db.session.get(User, rating.user_id)
+        res.append({
+            "username" : user.username,
+            "total_score" : rating.total_score,
+            "place":place,
+            "email": user.email,
+            "user_id" : user.id
+        })
+        place = place + 1
+    return jsonify({"Competition":competition.name,
+                    "leaderboard": res}) , 200
+
+@rating_bp.get("/competition/<int:competition_id>/challenge/<int:challenge_id>/leaderboard")
+def show_challenge_leaderboard(competition_id, challenge_id):
+    ratings = db.session.execute(select(Rating)
+                                .join(Achievement, Rating.achievement_id ==Achievement.id)
+                                .where(Achievement.challenge_id  == challenge_id)
+                                .order_by(Rating.value.desc())
+                                ).scalars().all()
+    res = []
+    place = 1
+    for rating in ratings:
+        user = db.session.get(User, rating.user_id)
+        res.append({
+            "value" : rating.value,
+            "username " : user.username,
+            "place": place,
+            "email": user.email,
+            "user_id" : user.id
+        })
+        place = place + 1
+    return jsonify(res) , 200
