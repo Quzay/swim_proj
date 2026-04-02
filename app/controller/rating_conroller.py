@@ -75,3 +75,28 @@ def show_challenge_leaderboard(competition_id, challenge_id):
         })
         place = place + 1
     return jsonify(res) , 200
+
+@rating_bp.get("/leaderboard")
+def show_general_leaberboard():
+    query = (
+        db.session.query(User.id,User.username,func.sum(Rating.value).label("total_score"))
+                        .join(Rating, User.id == Rating.user_id)
+                        .group_by(User.id, User.username)
+                        .order_by(func.sum(Rating.value).desc())
+    )                           
+    page = request.args.get("page", default=1, type=int)
+    per_page = request.args.get("per_page", default=3, type=int)
+    pagination = query.paginate(page=page, per_page=per_page, error_out=False)
+    
+    res = []
+    current_place = (page - 1) * per_page + 1
+    
+    for item in pagination.items:
+        res.append({
+            "user_id": item[0],       
+            "username": item[1],      
+            "value": int(item[2]) if item[2] is not None else 0, 
+            "place": current_place
+        }) 
+        current_place += 1
+    return jsonify(res), 200
