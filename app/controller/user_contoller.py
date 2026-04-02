@@ -90,8 +90,9 @@ def show_profile():
 @jwt_required(refresh=True)
 def refresh_token():
     identity = get_jwt_identity()
-    new_access_token = create_access_token(identity=identity)
-    return jsonify({"access_toke": new_access_token})
+    user = User.find_by_email(identity)
+    new_access_token = create_access_token(identity=identity, additional_claims={"role" : user.role})
+    return jsonify({"access_token": new_access_token})
 
 @user_bp.get("/logout")
 @jwt_required(verify_type=False)
