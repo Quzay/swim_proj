@@ -1,6 +1,6 @@
 from flask import Blueprint, request, jsonify
 from app.model import db , Achievement, User , user_competition_association_table , Stroke_type, Competition , Challenge, Status, Rating
-from flask_jwt_extended import jwt_required, get_jwt , get_jwt_identity
+from flask_jwt_extended import jwt_required , get_jwt_identity
 from sqlalchemy.exc import IntegrityError 
 from sqlalchemy import select , exists , func
 
@@ -12,6 +12,9 @@ def create_achievement(challenge_id,competition_id):
     user = User.find_by_email(get_jwt_identity())
     if not User:
         return jsonify({"message":"Please Log In"}), 403
+    already_post = db.session.execute(select(Achievement).where(Achievement.challenge_id == challenge_id, Achievement.user_id == user.id)).scalar_one_or_none
+    if already_post:
+        return jsonify({"message":"You have already posted your achievement "}), 409
     stmt = select(
         exists().where(
             user_competition_association_table.c.competition_id == competition_id,
