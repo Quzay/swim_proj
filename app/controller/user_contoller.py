@@ -1,9 +1,9 @@
 from app.model import db
 from flask import request, jsonify, Blueprint
-from flask_jwt_extended import create_access_token, create_refresh_token , jwt_required , get_jwt, current_user , get_jwt_identity
-from app.model import User, UserRole, TokenBlockList
+from flask_jwt_extended import create_access_token, create_refresh_token , jwt_required , get_jwt , get_jwt_identity
+from app.model import User, UserRole, TokenBlockList, Rating
 from sqlalchemy.exc import IntegrityError 
-
+from sqlalchemy import select, func
 
 
 user_bp = Blueprint('user', __name__)
@@ -79,11 +79,15 @@ def login_user():
 @user_bp.get("/profile")
 @jwt_required()
 def show_profile():
+    user = User.find_by_email(get_jwt_identity())
+    rating = db.session.execute(select(func.sum(Rating.value)).where(Rating.user_id == user.id)).scalar_one_or_none()
     return jsonify({"message":"message", "user_details":{
-        "username" : current_user.username,
-        "email" :current_user.email,
-        "age" : current_user.age,
-        "created_at" : current_user.created_at
+        "username" : user.username,
+        "email" :user.email,
+        "age" : user.age,
+        "created_at" : user.created_at,
+        "user_id" : user.id,
+        "rating": rating or 0
         }})
 
 @user_bp.get("/refresh")
