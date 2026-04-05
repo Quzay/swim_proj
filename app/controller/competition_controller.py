@@ -75,12 +75,21 @@ def show_competition():
     competition = Competition.query.all()
     if not competition:
         return jsonify({"message":"Competitions not found"}) ,404
+    
     ret = []
     for compet in competition:
+        current_count = db.session.execute(select(func.count())
+                                           .where(user_competition_association_table.c.competition_id == compet.id)
+                                           ).scalar() or 0
         ret.append({
             "name" : compet.name,
             "location" : compet.location,
-            "date" : compet.date
+            "date" : compet.date,
+            "registered" : current_count,
+            "amount" : compet.amount,
+            "is_open" : compet.is_open,
+            "status": compet.status,
+            "id" : compet.id
         })
     return jsonify(ret) , 200
 
