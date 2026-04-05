@@ -44,3 +44,43 @@ def show_all_challenges(competition_id):
             "competition_id" : challenge.competition_id
         })
     return jsonify(res), 200
+
+@challenge_bp.put("/competition/<int:competition_id>/challenge/<int:challenge_id>")
+@jwt_required()
+def update_challenge(competition_id, challenge_id):
+    user = User.find_by_email(get_jwt_identity()) # Чи треба взагалі?
+    if not user:
+        return jsonify({"message":"Please log in"}) , 401
+    challenge = db.session.get(Challenge,challenge_id)
+    if not challenge :
+        return jsonify({"message":"Challenge not found"}), 404
+    
+    if challenge.not_in_competition(competition_id):
+        return jsonify({"message":"competition doesnt have this challenge"}) , 400
+    data = request.get_json()
+    required_fields = ["name", "distance", "description"]
+    missing_fields = [field for field in required_fields if field not in data]
+    if missing_fields:
+        return jsonify({"error": "Missing data",
+            "message": f"Fields required: {', '.join(missing_fields)}"}), 422
+    challenge.name = data.get("name")
+    challenge.distance = data.get("distance")
+    challenge.description = data.get("description")
+
+    db.session.commit()
+    return jsonify({"message":"challenge successful updated"}), 200
+
+@challenge_bp.delete("/competition/<int:competition_id>/challenge/<int:challenge_id>")
+@jwt_required()
+def delete_challenge(competition_id, challenge_id):
+    claims = get_jwt()
+    if claims.get("role") != "admin":
+        return jsonify({"message":"You dont have permission"}) , 403
+    challenge = db.session.get(Challenge,challenge_id)
+    if not challenge :
+        return jsonify({"message":"Challenge not found"}), 404
+    if competition_id != challenge.competition_id:
+        return jsonify({"message":"competition doesnt have this challenge "}),400
+    db.session.delete(challenge)
+    db.session.commit()
+    return jsonify({"message":"Challenge was successful deleted"}) , 200
