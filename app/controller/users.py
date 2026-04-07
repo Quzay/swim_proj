@@ -1,6 +1,7 @@
 from flask import Blueprint, request , jsonify
 from flask_jwt_extended import jwt_required, get_jwt
-from app.model import User
+from app.model import User, db, Rating
+from sqlalchemy import select, func
 
 users_bp = Blueprint("users", __name__)
 
@@ -16,12 +17,16 @@ def get_all_users():
         return jsonify({"message":"No users registred"})
     res = []
     for user in pagination:
+        rating = db.session.execute(select(func.sum(Rating.value))
+                                .where(Rating.user_id == user.id)
+                                ).scalar()
         res.append({
             "id" : user.id,
             "username" : user.username,
             "email": user.email,
             "age": user.age,
-            "created_at" : user.created_at
+            "created_at" : user.created_at,
+            "total_score" : rating if rating else 0,
         })
     return jsonify(res), 200
     
