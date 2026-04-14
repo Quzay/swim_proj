@@ -13,7 +13,7 @@ class Achievement(db.Model):
     time:Mapped[datetime.time] = mapped_column(Time(3))
     distance_meters: Mapped[int] 
 
-    ratings:Mapped[List["Rating"]] = relationship(back_populates="achievement")
+    #ratings:Mapped[List["Rating"]] = relationship(back_populates="achievement")
     equipments:Mapped[Optional[List["Equipment"]]] = relationship(back_populates="achievement")
 
     challenge_id:Mapped[int] = mapped_column(ForeignKey("challenge.id"))

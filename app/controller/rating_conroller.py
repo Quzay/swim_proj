@@ -1,6 +1,6 @@
 from datetime import datetime
 from flask import Blueprint, request, jsonify
-from app.model import db, Competition, Challenge, Achievement, Rating, User
+from app.model import db, Competition, Challenge, Achievement, Rating, User, ModelName
 from flask_jwt_extended import jwt_required, get_jwt, get_jwt_identity
 from sqlalchemy.exc import IntegrityError 
 from sqlalchemy import func, select
@@ -14,29 +14,34 @@ def create_leaderboard(competition_id):
         return jsonify({"message":"competition not found"}) , 404
     challenges = db.session.execute(select(Challenge).where(Challenge.competition_id==competition_id)).scalars().all()
     for challenge in challenges:
-        bonus = 30
-        achievements = db.session.execute(select(Achievement).
+        bonus = 3
+        top_achievements = db.session.execute(select(Achievement).
                                          where(Achievement.challenge_id == challenge.id)
                                          .order_by(Achievement.time.asc())
+                                         .limit(3)
                                          ).scalars().all()
-        for achievement in achievements:
-            new_rating = Rating(
-                value = 50+bonus,
-                achievement_id = achievement.id,
-                user_id = achievement.user_id,
-                competition_id = competition_id
-            )
-            db.session.add(new_rating)
-            if bonus > 0:
-                bonus=bonus-10
+        for achievement in top_achievements:
+            rating = db.session.execute(select(Rating)
+                                        .where(Rating.model_name == ModelName.ACHIEVEMENT, 
+                                               Rating.referense_id == achievement.id)
+                                               ).scalar_one_or_none()
+            if rating:
+                rating.value += bonus
+                bonus -= 1
+            if bonus <= 0:
+                break
     db.session.commit()
     return jsonify({"message":"Rating successful created"}), 200
 
 @rating_bp.get("/competition/<int:competition_id>/leaderboard")
 def show_compet_leaderboard(competition_id):
     competition = db.session.get(Competition, competition_id)
+    if not competition:
+        return jsonify({"message":"Competition not found"}) , 404
     ratings = db.session.execute(select(Rating.user_id, func.sum(Rating.value).label("total_score"))
-                                .where(Rating.competition_id == competition_id)
+                                .join(Achievement,(Rating.model_name == ModelName.ACHIEVEMENT) & (Rating.referense_id == Achievement.id) )
+                                .join(Challenge, Challenge.id == Achievement.challenge_id)
+                                .where(Challenge.competition_id == competition_id)
                                 .group_by(Rating.user_id)
                                 .order_by(func.sum(Rating.value).desc())
                                 ).all()
@@ -100,3 +105,7 @@ def show_general_leaberboard():
         }) 
         current_place += 1
     return jsonify(res), 200
+
+@rating_bp.get("/activity/leaderboard") 
+def show_activity_leaderboard():
+    pass
