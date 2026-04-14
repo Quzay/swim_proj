@@ -3,6 +3,7 @@ from .enums import Stroke_type
 from sqlalchemy.orm import mapped_column,Mapped, relationship,validates 
 from sqlalchemy import String,ForeignKey,DateTime, desc , select, Enum  , func
 from .base import db
+from typing import List
 
 
 
@@ -18,6 +19,7 @@ class Activity(db.Model):
     user_id:Mapped[int] = mapped_column(ForeignKey("user.id"))
 
     user:Mapped["User"] = relationship(back_populates="activity")
+    #ratings:Mapped[List["Rating"]] = relationship(back_populates="activity")
 
     __table_args__ = (
         db.CheckConstraint('distance_meters > 0 ', name = "ck_activity_distance"),

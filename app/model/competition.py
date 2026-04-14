@@ -17,7 +17,7 @@ class Competition(db.Model):
     amount:Mapped[int] = mapped_column()
     status:Mapped[Optional[Status]]= mapped_column(Enum(Status) , default=Status.ACTIVE , server_default=Status.ACTIVE)
 
-    ratings:Mapped[List["Rating"]] = relationship(back_populates="competition")
+    #ratings:Mapped[List["Rating"]] = relationship(back_populates="competition")
     challenges:Mapped[List["Challenge"]] = relationship(back_populates="competitions", cascade="all, delete-orphan")
     users: Mapped[List["User"]] = relationship(
         secondary=user_competition_association_table,

@@ -15,3 +15,7 @@ class Status(str, enum.Enum):
     ACTIVE = "ACTIVE"
     FAILURE = "FAILURE"
     COMPLETED = "COMPLETED"
+
+class ModelName(str, enum.Enum):
+    ACHIEVEMENT = "ACHIEVEMENT"
+    ACTIVITY = "ACTIVITY"
