@@ -1,5 +1,5 @@
 from flask import Blueprint, request, jsonify
-from app.model import db , Challenge, User 
+from app.model import db , Challenge, User , Stroke_type
 from flask_jwt_extended import jwt_required, get_jwt , get_jwt_identity
 from sqlalchemy.exc import IntegrityError 
 from sqlalchemy import select
@@ -13,11 +13,16 @@ def create_challenge(competition_id):
     if claims.get("role") != "admin":
         return jsonify({"message":"You dont have permission"}) , 403
     data = request.get_json()
+    stroke_str = data.get("stroke")
+    if stroke_str not in Stroke_type.__members__:
+        return jsonify({"message": f"Invalid stroke. Choose from: {list(Stroke_type.__members__.keys())}"}), 422
+    stroke_enum = Stroke_type[stroke_str.upper()]
     new_chellenge = Challenge(
         name = data.get("name"),
         description = data.get("description"),
         distance = data.get("distance"),
-        competition_id = competition_id
+        competition_id = competition_id,
+        stroke = stroke_enum
     )
     db.session.add(new_chellenge)
     db.session.commit()
