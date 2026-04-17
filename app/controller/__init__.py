@@ -1,4 +1,3 @@
-from .achievement_controller import achievement_bp
 from .activity_controller import activity_bp
 from .challenge_controller import challenge_bp
 from .competition_controller import competition_bp

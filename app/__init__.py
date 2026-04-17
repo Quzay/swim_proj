@@ -37,7 +37,7 @@ def create_app(config = None):
     )
 
 
-    from .controller import  user_bp,activity_bp,goal_bp ,competition_bp, auth_bp, challenge_bp , users_bp, achievement_bp, rating_bp
+    from .controller import  user_bp,activity_bp,goal_bp ,competition_bp, auth_bp, challenge_bp , users_bp, rating_bp
     
     app.register_blueprint(user_bp, url_prefix='/user')
     app.register_blueprint(activity_bp, url_prefix="/activity")
@@ -46,7 +46,6 @@ def create_app(config = None):
     app.register_blueprint(users_bp, url_prefix ='/users')
     app.register_blueprint(auth_bp, url_prefix = '/auth')
     app.register_blueprint(challenge_bp)
-    app.register_blueprint(achievement_bp)
     app.register_blueprint(rating_bp)
 
     @jwt.user_lookup_loader

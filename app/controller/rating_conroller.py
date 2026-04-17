@@ -1,6 +1,6 @@
 from datetime import datetime
 from flask import Blueprint, request, jsonify
-from app.model import db, Competition, Challenge, Achievement, Rating, User, ModelName
+from app.model import db, Competition, Challenge, Rating, User, ModelName
 from flask_jwt_extended import jwt_required, get_jwt, get_jwt_identity
 from sqlalchemy.exc import IntegrityError 
 from sqlalchemy import func, select

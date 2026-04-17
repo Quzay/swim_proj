@@ -12,6 +12,6 @@ class Equipment(db.Model):
     typ:Mapped[Optional[str]] = mapped_column(String(15))
     brand:Mapped[Optional[str]] = mapped_column(String(25))
 
-    achievement_id:Mapped[int] = mapped_column(ForeignKey("achievement.id"))
+    activity_id:Mapped[int] = mapped_column(ForeignKey("activity.id"))
 
-    achievement:Mapped["Achievement"] = relationship(back_populates="equipments")
+    activity:Mapped["Activity"] = relationship(back_populates="equipments")

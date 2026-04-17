@@ -21,7 +21,6 @@ class User(db.Model):
     facebook_id:Mapped[Optional[str]] = mapped_column(String(100)) 
 
     goals:Mapped[List["Goal"]] = relationship(back_populates="user",cascade="all, delete-orphan")
-    achievements:Mapped[List["Achievement"]] = relationship(back_populates="user",cascade="all, delete-orphan")
     ratings:Mapped[List["Rating"]] = relationship(back_populates="user",cascade="all, delete-orphan")
     activity:Mapped[List["Activity"]] = relationship(back_populates="user",cascade="all, delete-orphan")
     
