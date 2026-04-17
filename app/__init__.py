@@ -40,7 +40,7 @@ def create_app(config = None):
     from .controller import  user_bp,activity_bp,goal_bp ,competition_bp, auth_bp, challenge_bp , users_bp, rating_bp
     
     app.register_blueprint(user_bp, url_prefix='/user')
-    app.register_blueprint(activity_bp, url_prefix="/activity")
+    app.register_blueprint(activity_bp)
     app.register_blueprint(goal_bp, url_prefix = "/goal")
     app.register_blueprint(competition_bp, url_prefix = "/competition")
     app.register_blueprint(users_bp, url_prefix ='/users')
