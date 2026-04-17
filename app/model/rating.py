@@ -1,9 +1,8 @@
 from datetime import datetime
 from .base import db
 from sqlalchemy.orm import mapped_column,Mapped, relationship
-from sqlalchemy import ForeignKey, DateTime, func, Enum
-from typing import Optional
-from .enums import ModelName
+from sqlalchemy import ForeignKey, DateTime, func, Float
+
 
 
 class Rating(db.Model):
@@ -11,16 +10,11 @@ class Rating(db.Model):
 
     id:Mapped[int] = mapped_column(autoincrement=True,primary_key=True)
     created_at:Mapped[datetime] = mapped_column(DateTime(), default=func.now())
-    value:Mapped[int] 
-
+    value:Mapped[float] = mapped_column(Float(2)) 
+    updated_at:Mapped[datetime] = mapped_column(DateTime(), default=func.now())
     user_id:Mapped[int] = mapped_column(ForeignKey("user.id"))
-    model_name:Mapped[ModelName] = mapped_column(Enum(ModelName))
-    referense_id:Mapped[int]
-
-    # achievement_id:Mapped[Optional[int]] = mapped_column(ForeignKey("achievement.id"))
-    # competition_id:Mapped[Optional[int]] = mapped_column(ForeignKey("competition.id"))
-    # activity_id:Mapped[Optional[int]] = mapped_column(ForeignKey("activity.id"))
+    activity_id:Mapped[int] = mapped_column(ForeignKey("activity.id"))
+    
+    
     user:Mapped["User"] = relationship(back_populates="ratings")
-    # achievement:Mapped["Achievement"] = relationship(back_populates="ratings")
-    # competition:Mapped["Competition"] = relationship(back_populates="ratings")
-    # activity:Mapped["Activity"] = relationship(back_populates="ratings")
+    activity:Mapped["Activity"] = relationship(back_populates="ratings")

@@ -1,6 +1,6 @@
 from flask import Blueprint, request, jsonify
 from app.model import db
-from app.model import User, Activity , Stroke_type , Goal , Status
+from app.model import User, Activity , Stroke_type , Goal , Status , Rating , ModelName
 from datetime import datetime , date
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from sqlalchemy.exc import IntegrityError 
@@ -31,10 +31,17 @@ def create_activity():
         if user_goal:
             if user_goal.status == Status.ACTIVE:
                 db.session.refresh(user_goal)
-                print(user_goal.remaining_distance)
                 if user_goal.remaining_distance <= 0:
                     user_goal.status = Status["COMPLETED"]
                     user_goal.deadline = date.today()
+        value_rating = new_activity.distance_meters / 500
+        new_rating = Rating(
+            value = value_rating,
+            user_id = user.id,
+            model_name = ModelName.ACTIVITY,
+            referense_id = new_activity.id
+        )
+        db.session.add(new_rating)
         db.session.commit()
         return jsonify({"message" : "Activity was succesful created"}), 200
     except IntegrityError as e:

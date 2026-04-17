@@ -6,6 +6,7 @@ class Stroke_type(str, enum.Enum):
     BACKSTROKE = "Backstroke"
     BREASTSTROKE = "Breaststroke"
     BUTTERFLY = "Butterfly"
+    MIXED = "Mixed"
 
 class UserRole(str, enum.Enum):
     ADMIN = "admin"
@@ -17,5 +18,5 @@ class Status(str, enum.Enum):
     COMPLETED = "COMPLETED"
 
 class ModelName(str, enum.Enum):
-    ACHIEVEMENT = "ACHIEVEMENT"
-    ACTIVITY = "ACTIVITY"
+    CHALLENGE = "CHALLENGE"
+    GOAL = "GOAL"

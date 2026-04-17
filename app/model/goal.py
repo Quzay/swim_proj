@@ -19,7 +19,7 @@ class Goal(db.Model):
     remaining_distance:Mapped[int] = column_property(
        target_distance - (
         select(func.coalesce(func.sum(Activity.distance_meters), 0))
-       .where(Activity.user_id == user_id , Activity.day >= created_at , Activity.day <= deadline)
+       .where(Activity.user_id == user_id , Activity.created_at >= created_at , Activity.created_at <= deadline)
        .scalar_subquery()
        )    
     )

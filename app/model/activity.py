@@ -1,7 +1,7 @@
 import datetime
-from .enums import Stroke_type
-from sqlalchemy.orm import mapped_column,Mapped, relationship,validates 
-from sqlalchemy import String,ForeignKey,DateTime, desc , select, Enum  , func
+from .enums import Stroke_type, ModelName
+from sqlalchemy.orm import mapped_column,Mapped, relationship,validates , column_property
+from sqlalchemy import Float,ForeignKey,DateTime, desc , select, Enum  , func 
 from .base import db
 from typing import List
 
@@ -12,14 +12,19 @@ class Activity(db.Model):
     __tablename__ = "activity"
 
     id:Mapped[int] = mapped_column(autoincrement=True,primary_key=True)
-    day:Mapped[datetime.datetime] = mapped_column(DateTime(), default=func.now())
+    created_at:Mapped[datetime.datetime] = mapped_column(DateTime(), default=func.now())
     stroke:Mapped[Stroke_type] = mapped_column(Enum(Stroke_type))
-    distance_meters: Mapped[int] 
+    distance_meters: Mapped[int]
+    time_s:Mapped[float] = mapped_column(Float(3)) 
+    model_name:Mapped[ModelName] = mapped_column(Enum(ModelName)) 
+    referense_id:Mapped[int]
+    #speed:Mapped[float] = column_property(distance_meters/time_s) Треба буде доробити, його поки нема
 
     user_id:Mapped[int] = mapped_column(ForeignKey("user.id"))
 
     user:Mapped["User"] = relationship(back_populates="activity")
-    #ratings:Mapped[List["Rating"]] = relationship(back_populates="activity")
+    ratings:Mapped[List["Rating"]] = relationship(back_populates="activity")
+    equipments:Mapped[List["Equipment"]] = relationship(back_populates="activity")
 
     __table_args__ = (
         db.CheckConstraint('distance_meters > 0 ', name = "ck_activity_distance"),

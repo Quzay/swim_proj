@@ -1,9 +1,10 @@
 import datetime
 from .base import db
 from sqlalchemy.orm import mapped_column,Mapped, relationship , validates 
-from sqlalchemy import String,DateTime ,Text , ForeignKey , func 
+from sqlalchemy import String, ForeignKey , Enum
 from typing import Optional,List
-from flask import jsonify
+from .enums import Stroke_type
+
 
 class Challenge(db.Model):
     __tablename__ = "challenge"
@@ -12,8 +13,7 @@ class Challenge(db.Model):
     name: Mapped[str] = mapped_column(String(20))
     description:Mapped[Optional[str]] = mapped_column(String(110))
     distance:Mapped[int] = mapped_column()
-
-    achievements:Mapped[List["Achievement"]] = relationship(back_populates="challenge", cascade="all, delete-orphan")
+    stroke:Mapped[Stroke_type] = mapped_column(Enum(Stroke_type))
 
     competition_id:Mapped[int] = mapped_column(ForeignKey("competition.id"))
     competitions: Mapped["Competition"] = relationship(back_populates="challenges")
