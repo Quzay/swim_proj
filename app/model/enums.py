@@ -20,3 +20,8 @@ class Status(str, enum.Enum):
 class ModelName(str, enum.Enum):
     CHALLENGE = "CHALLENGE"
     GOAL = "GOAL"
+
+class Equipment_type(str, enum.Enum):
+    FLIPPERS = "FLIPPERS"
+    HAND_PADDLES = "HAND_PADDLES"
+    SNORKEL = "SNORKEL"
