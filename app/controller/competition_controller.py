@@ -93,6 +93,25 @@ def show_competition():
         })
     return jsonify(ret) , 200
 
+@competition_bp.get("/<int:user_id>")
+def show_take_part(user_id):
+    competitions = db.session.scalars(select(Competition)
+                                      .join(user_competition_association_table, user_competition_association_table.c.user_id == user_id)
+                                      .where(Competition.id == user_competition_association_table.c.competition_id)
+                                    ).all()
+    result = []
+    for compet in competitions:
+        result.append({
+            "name" : compet.name,
+            "location" : compet.location,
+            "date" : compet.date,
+            "amount" : compet.amount,
+            "is_open" : compet.is_open,
+            "status": compet.status,
+            "id" : compet.id
+        })
+    return jsonify(result) , 200
+
 @competition_bp.route("/" , methods = ["DELETE"])
 @jwt_required()
 def delete_competition():

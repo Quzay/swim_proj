@@ -62,6 +62,22 @@ def show_goal():
         "status" : goal.status
     }) , 200
 
+@goal_bp.get("/<int:user_id>")
+def show_all_goals(user_id):
+    goals = Goal.get_all_goals_by_user(user_id)
+    result = []
+    for goal in goals:
+        result.append({
+            "id" : goal.id,
+            "distance" : f"{goal.target_distance} meters",
+            "deadline" : goal.deadline ,
+            "remaining_distance" : f"{goal.remaining_distance} remained meters",
+            "days_left" : f"{goal.days_left} day",
+            "created_at" : goal.created_at,
+            "status" : goal.status
+        })
+    return jsonify(result) , 200
+
 @goal_bp.route("/" , methods = ["DELETE"])
 @jwt_required()
 def delete_goal():

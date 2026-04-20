@@ -66,3 +66,6 @@ class Goal(db.Model):
             return deadline_obj
         return deadline
     
+    @classmethod
+    def get_all_goals_by_user(cls, user_id):
+        return cls.query.filter_by(user_id=user_id).all()
