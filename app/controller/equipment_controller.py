@@ -1,0 +1,42 @@
+from flask import Blueprint, request, jsonify
+from app.model import db, User , Equipment, Equipment_type , Activity , Rating
+from sqlalchemy.exc import IntegrityError 
+from flask_jwt_extended import jwt_required, get_jwt_identity
+from sqlalchemy import select, func
+
+equipment_bp = Blueprint("equipment" , __name__)
+
+@equipment_bp.post("/activity/<int:activity_id>/equipment")
+@jwt_required()
+def create_equipment(activity_id):
+    user = User.find_by_email(get_jwt_identity())
+    activity = db.session.get(Activity, activity_id)
+    if activity.user_id != user.id :
+        return jsonify({"message":"This activity is not yours"}) , 403
+    data = request.get_json()
+    type_str = data.get("type")
+    if type_str not in Equipment_type.__members__:
+        return jsonify({"message": f"Invalid Equipment. Choose from: {list(Equipment_type.__members__.keys())}"}), 422
+    type_enum = Equipment_type[type_str.upper()]
+    new_equipment = Equipment(
+        name = data.get("name"),
+        brand = data.get("brand"),
+        activity_id = activity_id,
+        type = type_enum
+    )
+    db.session.add(new_equipment)
+    db.session.commit()
+    return jsonify({"message":"You successful added equipment"}) , 200
+
+@equipment_bp.put("/activity/<int:activity_id>/equipment/<int:equipment_id>")
+def break_equipment(activity_id, equipment_id):
+    equipment = db.session.get(Equipment, equipment_id)
+    if equipment.is_broken == False :
+        equipment.is_broken = True
+    else:
+        return jsonify ({"message":"You already break this equipment"}) , 400
+    rating = db.session.scalar(select(Rating).where(Rating.activity_id == activity_id))
+    rating.value -=2
+    rating.updated_at = func.now() 
+    db.session.commit()
+    return jsonify({"message":"You , unfortunately, break the equipment "}) , 200

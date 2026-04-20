@@ -37,6 +37,7 @@ class Rating(db.Model):
                 rating = db.session.execute(select(Rating).where(Rating.activity_id == activity.id)).scalar_one_or_none()
                 if rating:
                     rating.value += bonus
+                    rating.updated_at = func.now()
                     bonus -= 1
                 if bonus <= 0:
                     break

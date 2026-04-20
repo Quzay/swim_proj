@@ -6,3 +6,4 @@ from .oauth import auth_bp
 from .user_contoller import user_bp
 from .users import users_bp
 from .rating_conroller import rating_bp
+from .equipment_controller import equipment_bp
