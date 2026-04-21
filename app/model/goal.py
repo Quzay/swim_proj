@@ -3,7 +3,7 @@ from .base import db
 from .activity import Activity
 from sqlalchemy.orm import mapped_column,Mapped,relationship,column_property, validates
 from sqlalchemy import ForeignKey,Date,select,func , DateTime , Enum , extract
-from .enums import Status
+from .enums import Status, ModelName
 
 class Goal(db.Model):
     __tablename__ = "goal"
@@ -19,7 +19,7 @@ class Goal(db.Model):
     remaining_distance:Mapped[int] = column_property(
        target_distance - (
         select(func.coalesce(func.sum(Activity.distance_meters), 0))
-       .where(Activity.user_id == user_id , Activity.created_at >= created_at , Activity.created_at <= deadline)
+       .where(Activity.user_id == user_id, Activity.model_name == ModelName.GOAL , Activity.created_at >= created_at , Activity.created_at <= deadline)
        .scalar_subquery()
        )    
     )
@@ -44,28 +44,44 @@ class Goal(db.Model):
             self.errors.append('Distance can not be negative')
         return target_distance
     
-    @validates('deadline')
-    def validate_deadline(self, key, deadline):
-        if deadline is None:
-            self.errors.append("Deadline is required")
-            return None
-        deadline_obj = None
-        if isinstance(deadline, str):
-            try:
-                deadline_obj = datetime.datetime.strptime(deadline, "%Y-%m-%d").date()
-            except (ValueError, TypeError):
-                self.errors.append("Deadline format must be YYYY-MM-DD")
-        elif isinstance(deadline, (datetime.datetime, datetime.date)):
+    # @validates('deadline')
+    # def validate_deadline(self, key, deadline):
+    #     if deadline is None:
+    #         self.errors.append("Deadline is required")
+    #         return None
+    #     deadline_obj = None
+    #     if isinstance(deadline, str):
+    #         try:
+    #             deadline_obj = datetime.datetime.strptime(deadline, "%Y-%m-%d").date()
+    #         except (ValueError, TypeError):
+    #             self.errors.append("Deadline format must be YYYY-MM-DD")
+    #     elif isinstance(deadline, (datetime.datetime, datetime.date)):
 
-            deadline_obj = deadline.date() if isinstance(deadline, datetime.datetime) else deadline
-        else:
-            self.errors.append("Deadline must be a string or a date")
-        if deadline_obj:
-            if deadline_obj < datetime.date.today():
-                self.errors.append("Deadline cannot be in the past")
-            return deadline_obj
-        return deadline
+    #         deadline_obj = deadline.date() if isinstance(deadline, datetime.datetime) else deadline
+    #     else:
+    #         self.errors.append("Deadline must be a string or a date")
+    #     if deadline_obj:
+    #         if deadline_obj < datetime.date.today():
+    #             self.errors.append("Deadline cannot be in the past")
+    #         return deadline_obj
+    #     return deadline
     
     @classmethod
     def get_all_goals_by_user(cls, user_id):
         return cls.query.filter_by(user_id=user_id).all()
+    
+    
+    def check_distance(self):
+        if self.target_distance <= self.remaining_distance:
+            self.status = Status.COMPLETED
+            self.deadline = func.now()
+            db.session.commit()
+            return True
+        else:
+            return False
+        
+    def check_date(self):
+        if self.deadline < datetime.datetime.now() and self.status == Status.ACTIVE:
+             self.status = Status.FAILURE
+             db.session.commit()
+        return None
