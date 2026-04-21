@@ -1,7 +1,9 @@
 from unittest.mock import MagicMock , patch
 from app.model import User
 from .factories import UserFactory
+import pytest
 
+@pytest.mark.integration
 def test_facebook_auth_logic(client, db_session, mock_fb_payload):
     with patch('app.controller.oauth.oauth.facebook') as mocked_fb:
         mock_response =MagicMock()
@@ -12,6 +14,7 @@ def test_facebook_auth_logic(client, db_session, mock_fb_payload):
 
         assert response.status_code == 200
 
+@pytest.mark.integration
 def test_facebook_link_to_existing_email(client, db_session, mock_fb_payload_2):
     existing_user = UserFactory(email = mock_fb_payload_2.get("email"))
     db_session.add(existing_user)
@@ -29,6 +32,7 @@ def test_facebook_link_to_existing_email(client, db_session, mock_fb_payload_2):
         updated_user = User.query.filter_by(email=mock_fb_payload_2['email']).first()
         assert updated_user.facebook_id == mock_fb_payload_2['id']
 
+@pytest.mark.integration
 def test_facebook_registration_age_error(client, db_session):
     bad_fb_payload = {
         "id": "999888777",

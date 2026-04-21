@@ -1,8 +1,8 @@
 from .factories import GoalFactory, ActivityFactory
-from app.model import Goal , db , User , Activity
+from app.model import Goal , db , User , Activity, ModelName
 import pytest
 from sqlalchemy.exc import IntegrityError
-from datetime import date, timedelta
+from datetime import date, timedelta , datetime
 
 def test_goal_model_validation_errors(db_session):
     goal = GoalFactory(target_distance="not_int", deadline="invalid-date")
@@ -19,7 +19,7 @@ def test_goal_model_past_deadline(db_session):
 
 
 # Integration
-
+@pytest.mark.integration
 def test_create_goal_success(client, auth_header):
     payload = {
         "target_distance": 5000,
@@ -29,7 +29,7 @@ def test_create_goal_success(client, auth_header):
     assert response.status_code == 200
 
 
-
+@pytest.mark.integration
 def test_create_goal_db_constraint_violation(client, auth_header):
     payload = {
         "target_distance": 0,
@@ -39,20 +39,23 @@ def test_create_goal_db_constraint_violation(client, auth_header):
     assert response.status_code == 422
 
 
-
+@pytest.mark.integration
 def test_goal_calculated_properties(client, auth_header, db_session):
     user = User.query.filter_by(email="test@gmail.com").first()
     Goal.query.filter_by(user_id=user.id).delete()
     Activity.query.filter_by(user_id=user.id).delete()
     db_session.commit()
 
-    future_deadline = date.today() + timedelta(days=30)
+    future_deadline = datetime.now() + timedelta(days=30)
     GoalFactory(target_distance=5000, deadline=future_deadline, user_id=user.id)
     activity = Activity(
         distance_meters=1200,
         user_id=user.id,
         stroke="FREESTYLE", 
-        day=date.today()
+        created_at=datetime.now(),
+        time_s = 100.5 , 
+        model_name = ModelName.GOAL,
+        referense_id = 1
     )
     db_session.add(activity)
     db_session.commit() 
@@ -61,8 +64,7 @@ def test_goal_calculated_properties(client, auth_header, db_session):
     assert response.status_code == 200
     assert "3800 remained meters" in response.json["remaining_distance"]
 
-
-
+@pytest.mark.integration
 def test_show_goal_not_found(client, auth_header, db_session):
     user = User.query.filter_by(email="test@gmail.com").first()
     Goal.query.filter_by(user_id=user.id).delete()
