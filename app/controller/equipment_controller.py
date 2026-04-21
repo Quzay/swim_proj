@@ -40,3 +40,16 @@ def break_equipment(activity_id, equipment_id):
     rating.updated_at = func.now() 
     db.session.commit()
     return jsonify({"message":"You , unfortunately, break the equipment "}) , 200
+
+@equipment_bp.get("/activity/<int:activity_id>/equipment")
+def show_equipment(activity_id):
+    equipment = db.session.scalar(select(Equipment).where(Equipment.activity_id == activity_id))
+    if not equipment:
+        return jsonify({"message":"Equipment not found"}) , 404
+    return jsonify({
+        "name": equipment.name,
+        "brand" : equipment.brand,
+        "type" : equipment.type,
+        "activity_id" : equipment.activity_id,
+        "is_broken" : equipment.is_broken
+        }) , 200
