@@ -33,24 +33,17 @@ def create_challennge_activity(competition_id, challenge_id):
     if stroke_str not in Stroke_type.__members__:
         return jsonify({"message": f"Invalid stroke. Choose from: {list(Stroke_type.__members__.keys())}"}), 422
     stroke_enum = Stroke_type[stroke_str.upper()]
+    new_activity = Activity(
+        stroke = stroke_enum,
+        distance_meters = data.get("distance_meters"),
+        user_id = user.id,
+        time_s = data.get("time_s"),
+        referense_id = challenge_id,
+        model_name = ModelName.CHALLENGE,
+    )
     try:
-        new_activity = Activity(
-            stroke = stroke_enum,
-            distance_meters = data.get("distance_meters"),
-            user_id = user.id,
-            time_s = data.get("time_s"),
-            referense_id = challenge_id,
-            model_name = ModelName.CHALLENGE,
-        )
         db.session.add(new_activity)
         db.session.flush()
-        # user_goal = Goal.query.filter_by(user_id=user.id).first()
-        # if user_goal:
-        #     if user_goal.status == Status.ACTIVE:
-        #         db.session.refresh(user_goal)
-        #         if user_goal.remaining_distance <= 0:
-        #             user_goal.status = Status["COMPLETED"]
-        #             user_goal.deadline = date.today()
         new_activity.check_require(challenge_id)
         if competition.check_number_of_free_activity():
                 db.session.commit()
@@ -62,21 +55,71 @@ def create_challennge_activity(competition_id, challenge_id):
         error_msg = str(e.orig)
         if "ck_activity_distance" in error_msg:
             new_activity.errors.append({"message":"Distance cannot be negative"})
-
-        if new_activity.errors:
-            return jsonify(new_activity.errors) , 422
+        return jsonify(new_activity.errors) , 422
     except ValueError as e:
         db.session.rollback()
         new_activity.errors.append({"message":str(e)})
+        return jsonify(new_activity.errors) , 422
     except Exception as e:
         db.session.rollback()
         new_activity.errors.append([{"message": f"Server error: {str(e)}"}])
         if new_activity.errors:
-            return jsonify(new_activity.errors)
+            return jsonify(new_activity.errors) , 422
 
-@activity_bp.get('/activity/')
-
-
+@activity_bp.post("/goal/<int:goal_id>/activity")
+@jwt_required()
+def create_goal_activity(goal_id):
+    user = User.find_by_email(get_jwt_identity())
+    goal = db.session.get(Goal, goal_id)
+    if not goal:
+        return jsonify({"message":"Goal not found"}) , 404
+    goal.check_date()
+    if goal.user_id != user.id:
+        return jsonify({"message":"That isn't your goal"}) , 403
+    if goal.status != Status.ACTIVE:
+        return jsonify({"message":"Goal was over"}) , 400 #?
+    data = request.get_json()
+    stroke_str = data.get("stroke")
+    if stroke_str not in Stroke_type.__members__:
+        return jsonify({"message": f"Invalid stroke. Choose from: {list(Stroke_type.__members__.keys())}"}), 422
+    stroke_enum = Stroke_type[stroke_str.upper()]
+    
+    new_activity = Activity(
+        stroke = stroke_enum,
+        distance_meters = data.get("distance_meters"),
+        user_id = user.id,
+        time_s = data.get("time_s"),
+        referense_id = goal_id,
+        model_name = ModelName.GOAL,
+    )
+    if new_activity.errors:
+        return jsonify(new_activity.errors), 422
+    try:
+        db.session.add(new_activity)
+        db.session.flush()
+        if goal.check_distance():
+            db.session.commit()
+            return jsonify({"message":"Activity was succesful created and you completed the Goal"}) , 200
+        return jsonify ({"message":"Activity was succesful created"}) , 200
+    except IntegrityError as e:
+        db.session.rollback()
+        error_msg = str(e.orig)
+        res_errors = new_activity.errors or []
+        if "ck_activity_distance" in error_msg:
+            res_errors.append({"message": "Distance cannot be negative"})
+        else:
+            res_errors.append({"message": f"Database Integrity Error: {error_msg}"})
+        return jsonify(res_errors), 422
+    except ValueError as e:
+        db.session.rollback()
+        new_activity.errors.append({"message":str(e)})
+        return jsonify(new_activity.errors) , 422
+    except Exception as e:
+        db.session.rollback()
+        new_activity.errors.append([{"message": f"Server error: {str(e)}"}])
+        if new_activity.errors:
+            return jsonify(new_activity.errors) , 422
+        
 @activity_bp.route("/<int:user_id>" , methods = ["DELETE"])
 def delete_activity(user_id):
     data = request.get_json()
@@ -106,11 +149,10 @@ def show_activity(activity_id):
         })
     
 
-@activity_bp.get("/activities")
-@jwt_required()
-def show_all_activities():
-    user = User.find_by_email(get_jwt_identity())
-    activity = Activity.get_all_activity_by_user(user.id)
+@activity_bp.get("/activities/<int:user_id>")
+# @jwt_required()
+def show_all_activities(user_id):
+    activity = Activity.get_all_activity_by_user(user_id)
     if not activity:
         return jsonify({"message" : "Activity not found"}) , 404
     ret = []

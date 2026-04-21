@@ -39,14 +39,14 @@ class Activity(db.Model):
             self.errors = []
             super(Activity,self).__init__(**kwargs)
 
-    # @validates('distance_meters')
-    # def validate_distance(self, key, distance_meters):
-    #     if type(distance_meters) == int:
-    #         if not distance_meters or distance_meters <=0:
-    #             self.errors.append({'message':'Distance can not be negative'})
-    #     else:
-    #         self.errors.append({"message":"Distance must be int"})
-    #     return distance_meters
+    @validates('distance_meters')
+    def validate_distance(self, key, distance_meters):
+        if type(distance_meters) == int:
+            if not distance_meters or distance_meters <=0:
+                self.errors.append({'message':'Distance can not be negative'})
+        else:
+            self.errors.append({"message":"Distance must be int"})
+        return distance_meters
 
     @validates('day')
     def validate_date(self, key, day):
