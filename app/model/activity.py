@@ -34,6 +34,7 @@ class Activity(db.Model):
 
     __table_args__ = (
         db.CheckConstraint('distance_meters > 0 ', name = "ck_activity_distance"),
+        db.CheckConstraint('time_s > 0.1', name = "ck_activity_time")
     )
     def __init__(self, **kwargs):
             self.errors = []
@@ -48,16 +49,26 @@ class Activity(db.Model):
             self.errors.append({"message":"Distance must be int"})
         return distance_meters
 
-    @validates('day')
-    def validate_date(self, key, day):
-        pass
-    
+    @validates('time_s')
+    def validate_time(self, key, time_s):
+        if not isinstance(time_s, (int, float)):
+            self.errors.append({"message": "Time must be a number"})
+        elif time_s <= 0:
+            self.errors.append({"message": "Time must be greater than zero"})
+        return time_s
+        
     @validates('stroke')
     def validate_stroke(self, key, stroke):
-        if stroke is None or stroke == "":
-            self.errors.append({"message":"Stroke is required"})
+        if stroke not in Stroke_type:
+            self.errors.append({"message": "Invalid stroke type"})
         return stroke
-
+    
+    @validates('model_name')
+    def validate_model_name(self, key, model_name):
+        if model_name not in ModelName:
+            self.errors.append({"message": "Invalid model name"})
+        return model_name
+    
     @classmethod
     def get_last_by_user_id (cls, user_id):
         return cls.query.filter_by(user_id=user_id).order_by(desc(cls.id)).first()

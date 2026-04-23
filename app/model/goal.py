@@ -44,27 +44,27 @@ class Goal(db.Model):
             self.errors.append('Distance can not be negative')
         return target_distance
     
-    # @validates('deadline')
-    # def validate_deadline(self, key, deadline):
-    #     if deadline is None:
-    #         self.errors.append("Deadline is required")
-    #         return None
-    #     deadline_obj = None
-    #     if isinstance(deadline, str):
-    #         try:
-    #             deadline_obj = datetime.datetime.strptime(deadline, "%Y-%m-%d").date()
-    #         except (ValueError, TypeError):
-    #             self.errors.append("Deadline format must be YYYY-MM-DD")
-    #     elif isinstance(deadline, (datetime.datetime, datetime.date)):
+    @validates('deadline')
+    def validate_deadline(self, key, deadline):
+        if deadline is None:
+            self.errors.append("Deadline is required")
+            return None
+        deadline_obj = None
+        if isinstance(deadline, str):
+            try:
+                deadline_obj = datetime.datetime.strptime(deadline, "%Y-%m-%d").date()
+            except (ValueError, TypeError):
+                self.errors.append("Deadline format must be YYYY-MM-DD")
+        elif isinstance(deadline, (datetime.datetime, datetime.date)):
 
-    #         deadline_obj = deadline.date() if isinstance(deadline, datetime.datetime) else deadline
-    #     else:
-    #         self.errors.append("Deadline must be a string or a date")
-    #     if deadline_obj:
-    #         if deadline_obj < datetime.date.today():
-    #             self.errors.append("Deadline cannot be in the past")
-    #         return deadline_obj
-    #     return deadline
+            deadline_obj = deadline.date() if isinstance(deadline, datetime.datetime) else deadline
+        else:
+            self.errors.append("Deadline must be a string or a date")
+        if deadline_obj:
+            if deadline_obj < datetime.date.today():
+                self.errors.append("Deadline cannot be in the past")
+            return deadline_obj
+        return deadline
     
     @classmethod
     def get_all_goals_by_user(cls, user_id):
@@ -72,7 +72,7 @@ class Goal(db.Model):
     
     
     def check_distance(self):
-        if self.target_distance <= self.remaining_distance:
+        if self.remaining_distance <= 0:
             self.status = Status.COMPLETED
             self.deadline = func.now()
             db.session.commit()

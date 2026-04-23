@@ -26,7 +26,8 @@ class Competition(db.Model):
 
     __table_args__ = (
         db.CheckConstraint("name != ''", name = "ck_competition_name"),
-        db.CheckConstraint("location != ''", name = "ck_competition_location")
+        db.CheckConstraint("location != ''", name = "ck_competition_location"),
+        db.CheckConstraint("amount > 0", name="ck_competition_amount"),
     )
 
     def __init__(self, **kwargs):
@@ -47,11 +48,27 @@ class Competition(db.Model):
             self.errors.append({"message":"Location cannot be empty"})
         return location
 
-    # @validates('date')
-    # def validate_date(self, key, date):
-    #     if date and date < datetime.date(2000, 1, 1):
-    #         self.errors.append({"message":"Date cannot be earlier than 2000"})
-    #     return date
+    @validates('amount')
+    def validate_amount(self, key, amount):
+        if not isinstance(amount, int):
+            self.errors.append({"message": "Amount must be an integer"})
+        elif amount < 0:
+            self.errors.append({"message": "Amount cannot be negative"})
+        return amount
+
+    @validates('date')
+    def validate_date(self, key, date):
+        if date:
+            yesterday = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0) - datetime.timedelta(days=1)
+            if date < yesterday:
+                self.errors.append({"message": f"Competition date {datetime.date.strftime('%Y-%m-%d')} cannot be in the past"})
+        return date
+
+    @validates('status')
+    def validate_status(self, key, status):
+        if status not in Status:
+            self.errors.append({"message": "Invalid status value"})
+        return status
 
     @classmethod
     def check_participate(cls, competition_id : int, user_id :int) -> bool:
