@@ -3,6 +3,7 @@ from app.model import Goal , db , User , Activity, ModelName
 import pytest
 from sqlalchemy.exc import IntegrityError
 from datetime import date, timedelta , datetime
+from sqlalchemy import select
 
 def test_goal_model_validation_errors(db_session):
     goal = GoalFactory(target_distance="not_int", deadline="invalid-date")
@@ -42,12 +43,9 @@ def test_create_goal_db_constraint_violation(client, auth_header):
 @pytest.mark.integration
 def test_goal_calculated_properties(client, auth_header, db_session):
     user = User.query.filter_by(email="test@gmail.com").first()
-    Goal.query.filter_by(user_id=user.id).delete()
-    Activity.query.filter_by(user_id=user.id).delete()
-    db_session.commit()
 
     future_deadline = datetime.now() + timedelta(days=30)
-    GoalFactory(target_distance=5000, deadline=future_deadline, user_id=user.id)
+    goal = GoalFactory(target_distance=5000, deadline=future_deadline, user_id=user.id)
     activity = Activity(
         distance_meters=1200,
         user_id=user.id,
@@ -60,15 +58,16 @@ def test_goal_calculated_properties(client, auth_header, db_session):
     db_session.add(activity)
     db_session.commit() 
    
-    response = client.get("/goal/", headers=auth_header)
+    response = client.get(f"/goal/{goal.id}", headers=auth_header)
     assert response.status_code == 200
     assert "3800 remained meters" in response.json["remaining_distance"]
 
 @pytest.mark.integration
 def test_show_goal_not_found(client, auth_header, db_session):
     user = User.query.filter_by(email="test@gmail.com").first()
-    Goal.query.filter_by(user_id=user.id).delete()
+    goal = db.session.scalar(select(Goal).where(Goal.user_id == user.id))
+    db.session.delete(goal)
     db_session.commit()
 
-    response = client.get("/goal/", headers=auth_header)
+    response = client.get(f"/goal/{goal.id}", headers=auth_header)
     assert response.status_code == 404
