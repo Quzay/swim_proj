@@ -14,11 +14,6 @@ def create_competition():
     if claims.get("role") != "admin":
         return jsonify({"message":"You dont have permission"}) , 403
     data = request.get_json()
-    # try:
-    #     day_str = data.get("date")
-    #     day_date = datetime.strptime(day_str, "%Y-%m-%d").date() if day_str else None
-    # except (ValueError, TypeError):
-    #     return jsonify({ "message":"Invalid date format. Use YYYY-MM-DD"}), 422
     new_competition = Competition(
         name = data.get("name"),
         location = data.get("location"),

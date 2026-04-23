@@ -97,6 +97,7 @@ def create_goal_activity(goal_id):
     try:
         db.session.add(new_activity)
         db.session.flush()
+        Rating.create_goal_rating(new_activity.id)
         if goal.check_distance():
             db.session.commit()
             return jsonify({"message":"Activity was succesful created and you completed the Goal"}) , 200

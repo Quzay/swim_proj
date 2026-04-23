@@ -29,8 +29,17 @@ def create_equipment(activity_id):
     return jsonify({"message":"You successful added equipment"}) , 200
 
 @equipment_bp.put("/activity/<int:activity_id>/equipment/<int:equipment_id>")
+@jwt_required()
 def break_equipment(activity_id, equipment_id):
+    user = User.find_by_email(get_jwt_identity())
+    activity = db.session.get(Activity, activity_id)
+    if not activity: 
+        return jsonify({"message":"Activity not found"}), 404
     equipment = db.session.get(Equipment, equipment_id)
+    if activity.id != equipment.activity_id:
+        return jsonify({"message":"That equipment not from this activity"}) , 400
+    if user.id != activity.user_id:
+        return jsonify({"message":"That is not your equipment"}) , 403
     if equipment.is_broken == False :
         equipment.is_broken = True
     else:
