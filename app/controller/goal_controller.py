@@ -45,11 +45,11 @@ def add_goal():
         return jsonify({"message":"An unexpected error occurred"}) , 500
     return jsonify({"message":"Goal was successful created"}) , 200
 
-@goal_bp.route("/" , methods = ["GET"])
+@goal_bp.route("/<int:goal_id>" , methods = ["GET"])
 @jwt_required()
-def show_goal():
+def show_goal(goal_id):
     user = User.find_by_email(get_jwt_identity())
-    goal = Goal.query.filter_by(user_id=user.id).order_by(desc(Goal.id)).first()
+    goal = db.session.get(Goal, goal_id)
     if not goal:
         return jsonify({"message":"You don't have goal"}), 404
     return jsonify({
@@ -62,7 +62,7 @@ def show_goal():
         "status" : goal.status
     }) , 200
 
-@goal_bp.get("/<int:user_id>")
+@goal_bp.get("/user/<int:user_id>/goals")
 def show_all_goals(user_id):
     goals = Goal.get_all_goals_by_user(user_id)
     result = []
@@ -93,12 +93,11 @@ def delete_goal():
     db.session.commit()
     return jsonify ({"message":"Goal was succesful deleted"}) , 200
 
-@goal_bp.route("/" , methods = ["PUT"])
+@goal_bp.route("/<int:goal_id>" , methods = ["PUT"])
 @jwt_required()
-def change_goal():
+def change_goal(goal_id):
     user = User.find_by_email(get_jwt_identity())
     data = request.get_json()
-    goal_id = data.get("goal_id")
     if not goal_id:
         return jsonify({"message":"Goal ID is required"}) , 400
     goal = Goal.query.filter_by(id=goal_id, user_id = user.id).first()
