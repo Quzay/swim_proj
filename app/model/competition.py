@@ -56,13 +56,24 @@ class Competition(db.Model):
             self.errors.append({"message": "Amount cannot be negative"})
         return amount
 
+   
     @validates('date')
-    def validate_date(self, key, date):
-        if date:
-            yesterday = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0) - datetime.timedelta(days=1)
-            if date < yesterday:
-                self.errors.append({"message": f"Competition date {datetime.date.strftime('%Y-%m-%d')} cannot be in the past"})
-        return date
+    def validate_date(self, key, value):
+        if isinstance(value, str):
+            value = datetime.datetime.strptime(value, '%Y-%m-%d')
+        if type(value) is datetime.date:
+            check_value = datetime.datetime.combine(value, datetime.time.min)
+        else:
+            check_value = value
+        now = datetime.datetime.now()
+        today_start = now.replace(hour=0, minute=0, second=0, microsecond=0)
+        if check_value < today_start:
+            date_str = check_value.strftime('%Y-%m-%d')
+            self.errors.append({
+                "message": f"Competition date {date_str} cannot be in the past"
+            })
+
+        return value
 
     @validates('status')
     def validate_status(self, key, status):
