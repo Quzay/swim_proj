@@ -45,7 +45,7 @@ class CompetitionFactory(SQLAlcemyFactory):
     amount = factory.Faker("random_int", min = 2 , max = 15)
     name = factory.Faker("name")
     location = factory.Faker("city")
-    date = factory.Faker("date_between", start_date="-25y", end_date="+10y")
+    date = factory.Faker("date_between", start_date="+1y", end_date="+10y")
     status = Status.ACTIVE
     is_open = True
 
@@ -55,14 +55,15 @@ class RatingFactory(SQLAlcemyFactory):
     value = factory.Faker("pyfloat",min_value= 3, max_value = 10, right_digits =2 )
 
 
-class EqipmentFactory(SQLAlcemyFactory):
+class EquipmentFactory(SQLAlcemyFactory):
     class Meta:
         model = Equipment
     name = factory.Faker("name")
-    type = factory.Faker(Equipment_type.FLIPPERS)
+    type = Equipment_type.FLIPPERS
     brand = factory.Faker("name")
+    is_broken = False
 
-class ChallengeFactoy(SQLAlcemyFactory):
+class ChallengeFactory(SQLAlcemyFactory):
     class Meta:
         model = Challenge
     name = factory.Faker("name")
@@ -70,4 +71,4 @@ class ChallengeFactoy(SQLAlcemyFactory):
     distance = factory.Faker("random_int" , min = 100, max = 1000)
     stroke = Stroke_type.FREESTYLE
 
-factories = [UserFactory,GoalFactory,ActivityFactory, CompetitionFactory, RatingFactory, EqipmentFactory, ChallengeFactoy]
+factories = [UserFactory,GoalFactory,ActivityFactory, CompetitionFactory, RatingFactory, EquipmentFactory, ChallengeFactory]
