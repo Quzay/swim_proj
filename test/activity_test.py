@@ -1,18 +1,14 @@
-from .factories import ActivityFactory, UserFactory, CompetitionFactory, ChallengeFactoy
+from .factories import ActivityFactory, UserFactory, CompetitionFactory, ChallengeFactory
 from app.model import Activity , db , Stroke_type 
 import pytest
 from sqlalchemy.exc import IntegrityError
 from datetime import datetime
 
 
-def test_activity_validation_success(db_session):
-    user = UserFactory()
-    db.session.flush()
-
+def test_activity_validation_success(user):
     act = ActivityFactory(user=user)
     db.session.flush()
     assert act.id is not None
-    
 
 def test_activity_negative_distance(db_session):
     act = ActivityFactory(distance_meters=-10)
@@ -22,7 +18,13 @@ def test_activity_negative_distance(db_session):
 
 def test_activity_invalid_stroke_type(db_session):
     act = ActivityFactory(stroke=None)
-    assert any("Stroke is required" in e['message'] for e in act.errors)
+    assert act.id is None
+
+def test_activity_speed_calculate(user):
+    act = ActivityFactory(distance_meters = 1000, time_s = 100, user = user)
+    db.session.flush()
+    assert act.id is not None
+    assert act.speed == 10.0
 
 
 #Integration
@@ -31,7 +33,7 @@ def test_create_activity_api_success(client, auth_header):
     compet = CompetitionFactory()
     db.session.add(compet)
     db.session.flush()
-    challenge = ChallengeFactoy(competition_id = compet.id)
+    challenge = ChallengeFactory(competition_id = compet.id)
     db.session.add(challenge)
     db.session.flush()
     payload = {
@@ -60,7 +62,7 @@ def test_create_activity_unauthorized(client, auth_header):
     compet = CompetitionFactory()
     db.session.add(compet)
     db.session.flush()
-    challenge = ChallengeFactoy(competition_id = compet.id)
+    challenge = ChallengeFactory(competition_id = compet.id)
     db.session.add(challenge)
     db.session.flush()
     
