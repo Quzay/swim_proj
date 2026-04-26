@@ -47,6 +47,7 @@ class Equipment(db.Model):
             return brand.strip()
         return brand
     
+    @validates("type")
     def validate_type(self, key, equipment_type):
         if equipment_type not in Equipment_type:
             self.errors.append({"message": f"Invalid equipment type. Must be one of {[e.value for e in Equipment_type]}"})

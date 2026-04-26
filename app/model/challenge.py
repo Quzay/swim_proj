@@ -19,8 +19,8 @@ class Challenge(db.Model):
     competitions: Mapped["Competition"] = relationship(back_populates="challenges")
     
     __table_args__ = (
-        db.CheckConstraint('distance > 0', name='ck_challenge_distance'),
-        db.CheckConstraint('name != ""', name = 'ck_challenge_name')
+        db.CheckConstraint("distance > 0", name="ck_challenge_distance"),
+        db.CheckConstraint("name != ''", name = "ck_challenge_name")
     )
 
     def __init__(self, **kwargs):

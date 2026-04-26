@@ -24,6 +24,8 @@ def create_challenge(competition_id):
         competition_id = competition_id,
         stroke = stroke_enum
     )
+    if new_chellenge.errors:
+        return jsonify({"errors": new_chellenge.errors}), 422
     db.session.add(new_chellenge)
     db.session.commit()
     return jsonify({"message":"Challenge was successful created"}) , 201
