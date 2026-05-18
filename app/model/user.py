@@ -2,7 +2,7 @@ import hashlib
 import datetime
 from typing import Optional,List
 from .base import db
-from sqlalchemy.orm import mapped_column,Mapped, relationship, validates
+from sqlalchemy.orm import mapped_column,Mapped, relationship, validates, column_property, declared_attr
 from sqlalchemy import String,DateTime,Enum, select
 from sqlalchemy.sql import func
 from .enums import UserRole
@@ -20,6 +20,28 @@ class User(db.Model):
     role:Mapped[UserRole] = mapped_column(Enum(UserRole),default=UserRole.USER)
     facebook_id:Mapped[Optional[str]] = mapped_column(String(100)) 
 
+    @declared_attr
+    def total_rating(cls) -> Mapped[float]:
+        from .rating import Rating
+        return column_property(select(func.sum(Rating.value))
+                               .where(Rating.user_id == cls.id)
+                               .correlate_except(Rating)
+                               .scalar_subquery())
+    @declared_attr
+    def activity_count(cls) -> Mapped[int]:
+        from .activity import Activity
+        return column_property(select(func.count(Activity.id))
+                               .where(Activity.user_id == cls.id)
+                               .correlate_except(Activity)
+                               .scalar_subquery())
+    @declared_attr
+    def total_distance(cls) -> Mapped[int]:
+        from .activity import Activity
+        return column_property(select(func.sum(Activity.distance_meters))
+                               .where(Activity.user_id == cls.id)
+                               .correlate_except(Activity)
+                               .scalar_subquery())
+    
     goals:Mapped[List["Goal"]] = relationship(back_populates="user",cascade="all, delete-orphan")
     ratings:Mapped[List["Rating"]] = relationship(back_populates="user",cascade="all, delete-orphan")
     activity:Mapped[List["Activity"]] = relationship(back_populates="user",cascade="all, delete-orphan")
