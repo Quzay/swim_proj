@@ -4,7 +4,7 @@ from flask_jwt_extended import create_access_token, create_refresh_token , jwt_r
 from app.model import User, UserRole, TokenBlockList, Rating, Activity, Goal, Status, user_competition_association_table, Competition
 from sqlalchemy.exc import IntegrityError 
 from sqlalchemy import select, func
-
+from decimal import Decimal, ROUND_HALF_UP
 
 user_bp = Blueprint('user', __name__)
 
@@ -236,17 +236,20 @@ def all_info_user(user_id):
                                           .join(user_competition_association_table,user_competition_association_table.c.user_id == user_id)
                                           .where(Competition.id == user_competition_association_table.c.competition_id , Competition.status == Status.ACTIVE)
                                           )
+    rating_rounded = Decimal(str(rating)).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+    distance_rounded = Decimal(str(user.total_distance/1000)).quantize(Decimal("0.01") , rounding=ROUND_HALF_UP)
     user_data = {               
         "id": user.id,
         "username": user.username,
         "email": user.email,
         "age": user.age,
         "created_at": user.created_at.isoformat(),
-        "activity_cont" : activities,
+        "activity_cont" : user.activity_count,
         "completed_goal_count" : completed_goal if completed_goal else 0,
-        "total_rating" : rating if rating else 0 ,
+        "total_rating" : rating_rounded if rating_rounded else 0 ,
         "competition_joined" : competition if competition else 0 ,
         "joined_active_competition" : active_cometition if active_cometition else 0 ,
+        "total_distance" : f"{distance_rounded} km" if distance_rounded else 0,
         "Links" : {
             "list_activity" : url_for("activity.show_all_activities", user_id = user_id),
             "list_goal" : url_for("goal.show_all_goals" , user_id = user_id),
