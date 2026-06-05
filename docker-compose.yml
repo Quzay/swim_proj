@@ -41,6 +41,18 @@ services:
     command: flask --app run.py run --host=0.0.0.0 --port=5000
     networks:
       - swim_network
+    develop:
+      watch:
+        - path: ./app
+          action: sync
+          target: /app
+
+        - path: ./run.py
+          action: sync
+          target: /app/run.py
+
+        - path: ./requirements.txt
+          action: rebuild
 volumes:
   postgres_data:
 
