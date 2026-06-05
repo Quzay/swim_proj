@@ -10,7 +10,6 @@ load_dotenv()
 
 def create_app(config = None):
     app = Flask(__name__)
-    app.config['SERVER_NAME'] = 'localhost:5000'
     app.config.from_prefixed_env()
 
     if not config:

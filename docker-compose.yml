@@ -1,0 +1,49 @@
+version : "3.8"
+services:
+  db:
+    image: postgres:15-alpine
+    restart: always
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB} -h localhost"]
+      interval: 3s
+      timeout: 3s
+      retries: 5
+    networks:
+      - swim_network
+
+  web:
+    build: .
+    restart: always
+    ports:
+      - "5000:5000"
+    environment:
+      FLASK_RUN_HOST: 0.0.0.0
+      LINK_DB: postgresql+psycopg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
+      FLASK_DEBUG: ${FLASK_DEBUG}
+      SECRET_KEY: ${FLASK_SECRET_KEY}
+      FACEBOOK_CLIENT_ID: ${FACEBOOK_CLIENT_ID}
+      FACEBOOK_CLIENT_SECRET: ${FACEBOOK_CLIENT_SECRET}
+      FLASK_JWT_SECRET_KEY: ${FLASK_JWT_SECRET_KEY}
+      FLASK_JWT_ACCESS_TOKEN_EXPIRES: ${FLASK_JWT_ACCESS_TOKEN_EXPIRES}
+      FLASK_JWT_REFRESH_TOKEN_EXPIRES: ${FLASK_JWT_REFRESH_TOKEN_EXPIRES}
+      FLASK_APP: run.py
+    depends_on:
+      db:
+        condition: service_healthy
+    command: flask --app run.py run --host=0.0.0.0 --port=5000
+    networks:
+      - swim_network
+volumes:
+  postgres_data:
+
+networks:
+  swim_network:
+    driver: bridge
