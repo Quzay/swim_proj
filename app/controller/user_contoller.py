@@ -1,10 +1,10 @@
 from app.model import db
-from flask import request, jsonify, Blueprint
-from flask_jwt_extended import create_access_token, create_refresh_token , jwt_required , get_jwt, current_user , get_jwt_identity
-from app.model import User, UserRole, TokenBlockList
+from flask import request, jsonify, Blueprint, url_for
+from flask_jwt_extended import create_access_token, create_refresh_token , jwt_required , get_jwt , get_jwt_identity
+from app.model import User, UserRole, TokenBlockList, Rating, Activity, Goal, Status, user_competition_association_table, Competition
 from sqlalchemy.exc import IntegrityError 
-
-
+from sqlalchemy import select, func
+from decimal import Decimal, ROUND_HALF_UP
 
 user_bp = Blueprint('user', __name__)
 
@@ -79,19 +79,24 @@ def login_user():
 @user_bp.get("/profile")
 @jwt_required()
 def show_profile():
+    user = User.find_by_email(get_jwt_identity())
+    rating = db.session.execute(select(func.sum(Rating.value)).where(Rating.user_id == user.id)).scalar_one_or_none()
     return jsonify({"message":"message", "user_details":{
-        "username" : current_user.username,
-        "email" :current_user.email,
-        "age" : current_user.age,
-        "created_at" : current_user.created_at
+        "username" : user.username,
+        "email" :user.email,
+        "age" : user.age,
+        "created_at" : user.created_at,
+        "user_id" : user.id,
+        "rating": rating or 0
         }})
 
 @user_bp.get("/refresh")
 @jwt_required(refresh=True)
 def refresh_token():
     identity = get_jwt_identity()
-    new_access_token = create_access_token(identity=identity)
-    return jsonify({"access_toke": new_access_token})
+    user = User.find_by_email(identity)
+    new_access_token = create_access_token(identity=identity, additional_claims={"role" : user.role})
+    return jsonify({"access_token": new_access_token})
 
 @user_bp.get("/logout")
 @jwt_required(verify_type=False)
@@ -172,19 +177,6 @@ def update_user(user_id):
             return jsonify({"message":"An unexpected error occurred"}) , 500
     return jsonify({"message": "User updated successfully"}), 200
 
-@user_bp.route('/<int:user_id>' , methods=['GET'])
-def get_user(user_id):
-    user = User.query.get(user_id)
-    if not user:
-        return jsonify({"message": "User not found"}), 404
-    user_data = {
-        "id": user.id,
-        "username": user.username,
-        "email": user.email,
-        "age": user.age,
-        "created_at": user.created_at.isoformat()
-    }
-    return jsonify(user_data), 200
 
 @user_bp.route('/<int:user_id>', methods=['PUT'])
 def change_user(user_id):
@@ -227,22 +219,44 @@ def change_user(user_id):
     return jsonify({"message": "User information changed successfully"}), 200
 
 
-@user_bp.route("/show" , methods = ["GET"])
-def show_all():
-    users = User.query.all()
-    if not users:
-        return jsonify({"message":"Users not found"}) , 404
-    res = []
-    for user in users:
-        res.append( {
+@user_bp.get("/<int:user_id>/")
+@jwt_required()
+def all_info_user(user_id):
+    claims = get_jwt()
+    if claims.get("role") != "admin":
+        return jsonify({"message":"You dont have permission"}) , 403
+    user = db.session.get(User,user_id)
+    if not user:
+        return jsonify({"message": "User not found"}), 404
+    completed_goal = db.session.execute(select(func.count(Goal.id)).where(Goal.status == Status.COMPLETED , Goal.user_id == user_id)).scalar_one_or_none()
+    activities = db.session.scalar(select(func.count(Activity.id)).where(Activity.user_id == user_id))
+    rating = db.session.execute(select(func.sum(Rating.value)).where(Rating.user_id == user_id)).scalar_one_or_none()
+    competition = db.session.scalar(select(func.count(user_competition_association_table.c.user_id)).where(user_competition_association_table.c.user_id == user_id))
+    active_cometition = db.session.scalar(select(func.count(Competition.id))
+                                          .join(user_competition_association_table,user_competition_association_table.c.user_id == user_id)
+                                          .where(Competition.id == user_competition_association_table.c.competition_id , Competition.status == Status.ACTIVE)
+                                          )
+    rating_rounded = Decimal(str(rating)).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+    distance_rounded = Decimal(str(user.total_distance/1000)).quantize(Decimal("0.01") , rounding=ROUND_HALF_UP)
+    user_data = {               
         "id": user.id,
         "username": user.username,
         "email": user.email,
         "age": user.age,
-        "created_at": user.created_at.isoformat()
-    })
-    return jsonify(res)
-
+        "created_at": user.created_at.isoformat(),
+        "activity_cont" : user.activity_count,
+        "completed_goal_count" : completed_goal if completed_goal else 0,
+        "total_rating" : rating_rounded if rating_rounded else 0 ,
+        "competition_joined" : competition if competition else 0 ,
+        "joined_active_competition" : active_cometition if active_cometition else 0 ,
+        "total_distance" : f"{distance_rounded} km" if distance_rounded else 0,
+        "Links" : {
+            "list_activity" : url_for("activity.show_all_activities", user_id = user_id),
+            "list_goal" : url_for("goal.show_all_goals" , user_id = user_id),
+            "link_competition" : url_for("competition.show_take_part" , user_id =user_id) #!!!!!!!!!!!!!!! Закінчити
+        }
+    }
+    return jsonify(user_data) , 200
 
 def create_user_logic(data):
     password_from_data = data.get("password")

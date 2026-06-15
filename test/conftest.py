@@ -4,7 +4,7 @@ from flask_sqlalchemy import SQLAlchemy
 import factory
 from app.model import db , User , UserRole
 from app import create_app
-from .factories import factories
+from .factories import factories, UserFactory, CompetitionFactory
 from flask_jwt_extended import create_access_token
 
 @pytest.fixture(scope='session')
@@ -100,6 +100,14 @@ def mock_fb_payload_2():
         "email": "makson@example.com",
         "age_range" : 23
     }
+
+@pytest.fixture
+def user(db_session):
+    return UserFactory()
+
+@pytest.fixture
+def competition(db_session):
+    return CompetitionFactory()
 
 @pytest.fixture(scope="function")
 def client(app):

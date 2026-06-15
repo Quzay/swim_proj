@@ -1,5 +1,5 @@
 from flask import Blueprint, jsonify , url_for 
-from flask_jwt_extended import create_access_token
+from flask_jwt_extended import create_access_token , create_refresh_token
 from app.model import User 
 from app import oauth , db
 import uuid
@@ -43,4 +43,6 @@ def facebook_auth():
             if errors:
                 return jsonify({"error": errors}), 400
     access_token = create_access_token(identity=user.email, additional_claims={"role": user.role})
-    return jsonify({"access_token": access_token})
+    refresh_token = create_refresh_token(identity=user.email , additional_claims={"role" : user.role})
+    return jsonify({"access_token": access_token},
+                   {"refresh_token":refresh_token}) , 200

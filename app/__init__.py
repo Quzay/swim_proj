@@ -3,13 +3,13 @@ from flask import Flask , jsonify
 from .model.base import db,jwt,oauth
 from .model import User , TokenBlockList
 from dotenv import load_dotenv
-
+from flask_migrate import Migrate
+import app.model
 
 load_dotenv()
 
 def create_app(config = None):
     app = Flask(__name__)
-    app.config['SERVER_NAME'] = 'localhost:5000'
     app.config.from_prefixed_env()
 
     if not config:
@@ -18,6 +18,7 @@ def create_app(config = None):
     else:
         app.config.from_mapping(config)
 
+    migrate = Migrate(app, db)
     db.init_app(app)
     jwt.init_app(app)
     oauth.init_app(app)
@@ -35,19 +36,17 @@ def create_app(config = None):
     )
 
 
-    from .controller.users import users_bp
-    from .controller.user_contoller import user_bp
-    from .controller.activity_controller import activity_bp
-    from .controller.goal_controller import goal_bp
-    from .controller.competition_controller import competition_bp
-    from .controller.oauth import auth_bp
+    from .controller import  user_bp,activity_bp,goal_bp ,competition_bp, auth_bp, challenge_bp , users_bp, rating_bp, equipment_bp
     
     app.register_blueprint(user_bp, url_prefix='/user')
-    app.register_blueprint(activity_bp, url_prefix="/activity")
+    app.register_blueprint(activity_bp)
     app.register_blueprint(goal_bp, url_prefix = "/goal")
     app.register_blueprint(competition_bp, url_prefix = "/competition")
     app.register_blueprint(users_bp, url_prefix ='/users')
     app.register_blueprint(auth_bp, url_prefix = '/auth')
+    app.register_blueprint(challenge_bp)
+    app.register_blueprint(rating_bp)
+    app.register_blueprint(equipment_bp)
 
     @jwt.user_lookup_loader
     def user_lookup_callback(_jwt_headers,jwt_data):
@@ -72,7 +71,7 @@ def create_app(config = None):
         token = db.session.query(TokenBlockList).filter(TokenBlockList.jti == jti).scalar()
         return token is not None
 
-    with app.app_context():
-        db.create_all()
+    # with app.app_context():
+    #     db.create_all()
     return app
         

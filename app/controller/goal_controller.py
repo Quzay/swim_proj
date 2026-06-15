@@ -1,5 +1,5 @@
 from flask import Blueprint, request, jsonify
-from app.model import db, User, Goal
+from app.model import db, User, Goal , Status
 from datetime import datetime,date
 from sqlalchemy import desc
 from sqlalchemy.exc import IntegrityError 
@@ -10,15 +10,16 @@ goal_bp = Blueprint('goal' , __name__)
 @goal_bp.route("/" , methods = ["POST"])
 @jwt_required()
 def add_goal():
-    email = get_jwt_identity()
-    user = User.query.filter_by(email=email).first()
+    user = User.find_by_email(get_jwt_identity())
     if not user :
         return jsonify({"message " : "User not found"}),404
     data = request.get_json()
+    status_enum = Status["ACTIVE"]
     new_goal = Goal(
         target_distance  = data.get("target_distance"),
         deadline = data.get("deadline"),
-        user_id = user.id
+        user_id = user.id,
+        status = status_enum
         )
     if new_goal.errors:
         return jsonify({"errors": new_goal.errors}), 422
@@ -44,12 +45,11 @@ def add_goal():
         return jsonify({"message":"An unexpected error occurred"}) , 500
     return jsonify({"message":"Goal was successful created"}) , 200
 
-@goal_bp.route("/" , methods = ["GET"])
+@goal_bp.route("/<int:goal_id>" , methods = ["GET"])
 @jwt_required()
-def show_goal():
-    email = get_jwt_identity()
-    user = User.query.filter_by(email=email).first()
-    goal = Goal.query.filter_by(user_id=user.id).order_by(desc(Goal.id)).first()
+def show_goal(goal_id):
+    user = User.find_by_email(get_jwt_identity())
+    goal = db.session.get(Goal, goal_id)
     if not goal:
         return jsonify({"message":"You don't have goal"}), 404
     return jsonify({
@@ -57,29 +57,50 @@ def show_goal():
         "distance" : f"{goal.target_distance} meters",
         "deadline" : goal.deadline ,
         "remaining_distance" : f"{goal.remaining_distance} remained meters",
-        "days_left" : f"{goal.days_left} day"
+        "days_left" : f"{goal.days_left} day",
+        "created_at" : goal.created_at,
+        "status" : goal.status
     }) , 200
 
-@goal_bp.route("/<int:user_id>" , methods = ["DELETE"])
-def delete_goal(user_id):
+@goal_bp.get("/user/<int:user_id>/goals")
+def show_all_goals(user_id):
+    goals = Goal.get_all_goals_by_user(user_id)
+    result = []
+    for goal in goals:
+        result.append({
+            "id" : goal.id,
+            "distance" : f"{goal.target_distance} meters",
+            "deadline" : goal.deadline ,
+            "remaining_distance" : f"{goal.remaining_distance} remained meters",
+            "days_left" : f"{goal.days_left} day",
+            "created_at" : goal.created_at,
+            "status" : goal.status
+        })
+    return jsonify(result) , 200
+
+@goal_bp.route("/" , methods = ["DELETE"])
+@jwt_required()
+def delete_goal():
+    user = User.find_by_email(get_jwt_identity())
     data = request.get_json()
     goal_id = data.get("goal_id")
     if not goal_id : 
         return jsonify ({"message":"Goal ID is required"}) , 400
-    goal = Goal.query.filter_by(id = goal_id, user_id = user_id).first()
+    goal = Goal.query.filter_by(id = goal_id, user_id = user.id).first()
     if not goal:
         return jsonify ({"message":"Goal not found or access denied"}) , 404
     db.session.delete(goal)
     db.session.commit()
     return jsonify ({"message":"Goal was succesful deleted"}) , 200
 
-@goal_bp.route("/<int:user_id>" , methods = ["PUT"])
-def change_goal(user_id):
+@goal_bp.route("/<int:goal_id>" , methods = ["PUT"])
+@jwt_required()
+def change_goal(goal_id):
+    user = User.find_by_email(get_jwt_identity())
     data = request.get_json()
-    goal_id = data.get("goal_id")
     if not goal_id:
         return jsonify({"message":"Goal ID is required"}) , 400
-    goal = Goal.query.filter_by(id=goal_id, user_id = user_id).first()
+    goal = Goal.query.filter_by(id=goal_id, user_id = user.id).first()
     if not goal:
         return jsonify({"message":"Goal not found or access denied"}), 404
     required_fields = ["target_distance" , "deadline"]
@@ -91,18 +112,3 @@ def change_goal(user_id):
     db.session.commit()
     return jsonify({"message":"Goal was successful changed"}), 200
 
-@goal_bp.route("/<int:user_id>" , methods = ["PATCH"])
-def update_goal(user_id):
-    data = request.get_json()
-    goal_id = data.get("goal_id")
-    if not goal_id:
-        return jsonify({"message":"Goal ID is required"}) , 400
-    goal = Goal.query.filter_by(id=goal_id,user_id=user_id).first()
-    if not goal:
-        return jsonify({"message":"Goal not found or access denied"}), 404
-    if "deadline" in data:
-        goal.deadline = date.fromisoformat(data.get("deadline"))
-    if "target_distance" in data:
-        goal.target_distance = data.get("target_distance")
-    db.session.commit()
-    return jsonify({"message":"Goal was successful changed"}) , 200

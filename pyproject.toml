@@ -1,0 +1,9 @@
+[tool.pytest.ini_options]
+
+filterwarnings = [
+    "ignore::sqlalchemy.exc.LegacyAPIWarning"
+]
+
+markers = [
+    "integration: marks tests as integration tests"
+]

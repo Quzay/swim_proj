@@ -1,0 +1,1 @@
+from .user_competition_association import user_competition_association_table
